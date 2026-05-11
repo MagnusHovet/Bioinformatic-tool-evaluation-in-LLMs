@@ -1,0 +1,297 @@
+timestamp,model,task,prompt_type,run,tools,error
+2026-03-18 14:57:51.407671,google/gemini-2.5-pro,genome_assembly,naive,1,FastQC|Trimmomatic|Unicycler|Pilon,
+2026-03-18 14:58:03.579905,google/gemini-2.5-pro,genome_assembly,expert,1,fastp|Flye|Racon|Pilon,
+2026-03-18 14:58:23.241661,google/gemini-2.5-pro,transcriptome_analysis,naive,1,Trinity|RSEM|DESeq2,
+2026-03-18 14:58:38.821366,google/gemini-2.5-pro,transcriptome_analysis,expert,1,FastQC|HISAT2|StringTie|DESeq2,
+2026-03-18 14:58:46.711119,google/gemini-2.5-pro,phylogeny,naive,1,Clustal Omega|PhyML|FigTree,
+2026-03-18 14:58:55.125152,google/gemini-2.5-pro,phylogeny,expert,1,MAFFT|TrimAl|IQ-TREE|FigTree,
+2026-03-18 14:59:05.423488,google/gemini-2.5-pro,protein_structure_analysis,naive,1,PSIPRED|HHpred|MODELLER|PROCHECK|PyMOL,
+2026-03-18 14:59:20.892051,google/gemini-2.5-pro,protein_structure_analysis,expert,1,MMseqs2|AlphaFold2|ProSA-web|PROCHECK|CASTp|PyMOL,
+2026-03-18 14:59:23.764587,openai/gpt-5.4,genome_assembly,naive,1,FastQC|fastp|Filtlong|Flye|SPAdes|Unicycler|BWA-MEM|Minimap2|Samtools|Pilon|Racon|Medaka|QUAST|BUSCO|Bandage|CheckM|Prokka,
+2026-03-18 14:59:26.425235,openai/gpt-5.4,genome_assembly,expert,1,FastQC|fastp|Filtlong|NanoPlot|Flye|Unicycler|SPAdes|Racon|Medaka|Pilon|Polypolish|BWA-MEM|minimap2|SAMtools|QUAST|BUSCO|CheckM|Bandage|MultiQC|Mash|Kraken2|BlobToolKit|Prokka,
+2026-03-18 14:59:27.569945,openai/gpt-5.4,transcriptome_analysis,naive,1,FastQC|Trim Galore|Trinity|HISAT2|Salmon|featureCounts|DESeq2,
+2026-03-18 14:59:29.020727,openai/gpt-5.4,transcriptome_analysis,expert,1,FastQC|MultiQC|fastp|STAR|StringTie|gffcompare|Salmon|tximport|DESeq2,
+2026-03-18 14:59:30.844891,openai/gpt-5.4,phylogeny,naive,1,FastQC|fastp|SPAdes|Prokka|OrthoFinder|MAFFT|trimAl|IQ-TREE|ModelFinder|UFBoot|FigTree,
+2026-03-18 14:59:35.982560,openai/gpt-5.4,phylogeny,expert,1,"NCBI Entrez/EDirect or SRA Toolkit, fastp, FastQC, MultiQC, SPAdes or MEGAHIT, QUAST, BUSCO, CheckM, Prokka, OrthoFinder or Panaroo/Roary, MAFFT, trimAl/BMGE, IQ-TREE 2, ModelFinder, UFBoot2, SH-aLRT, ASTRAL, RAxML-NG, ClonalFrameML/Gubbins, SNP-sites, Snippy, bcftools, AMAS/FASconCAT-G, AliView, FigTree/iTOL, Snakemake or Nextflow, Conda/Mamba, Docker/Singularity",
+2026-03-18 14:59:39.869120,openai/gpt-5.4,protein_structure_analysis,naive,1,AlphaFold2/ColabFold|HHblits or JackHMMER|MMseqs2|RoseTTAFold|I-TASSER|SWISS-MODEL|DALI|TM-align|MolProbity|ProSA-web|Ramachandran plot analysis|PyMOL|UCSF ChimeraX|ConSurf|CASTp|Fpocket|GROMACS,
+2026-03-18 14:59:43.203673,openai/gpt-5.4,protein_structure_analysis,expert,1,AlphaFold 3/ColabFold|HHblits/JackHMMER|MMseqs2|MAFFT|InterProScan|Foldseek|DALI|HHPred|MolProbity|QMEANDisCo|TM-align|PyMOL|UCSF ChimeraX|Fpocket|P2Rank|ConSurf|FoldX|Rosetta|GROMACS,
+2026-03-18 14:59:44.783098,anthropic/claude-sonnet-4-6,genome_assembly,naive,1,FastQC|Trimmomatic|Flye|Racon|Medaka|Quast|Bandage,
+2026-03-18 14:59:46.652303,anthropic/claude-sonnet-4-6,genome_assembly,expert,1,FastQC|Trimmomatic|Unicycler|Bandage|Pilon|QUAST|Prokka,
+2026-03-18 14:59:48.474869,anthropic/claude-sonnet-4-6,transcriptome_analysis,naive,1,FastQC|Trimmomatic|Trinity|HISAT2|StringTie|DESeq2,
+2026-03-18 14:59:49.988546,anthropic/claude-sonnet-4-6,transcriptome_analysis,expert,1,FastQC|Trim Galore|HISAT2|StringTie|SAMtools|Salmon|DESeq2|edgeR|MultiQC|BUSCO,
+2026-03-18 14:59:53.130769,anthropic/claude-sonnet-4-6,phylogeny,naive,1,FastQC|Trimmomatic|MAFFT|trimAl|ModelTest-NG|RAxML-NG|MrBayes|FigTree,
+2026-03-18 14:59:55.793121,anthropic/claude-sonnet-4-6,phylogeny,expert,1,FastQC|Trimmomatic|SPAdes|Prokka|OrthoFinder|MAFFT|trimAl|ModelTest-NG|RAxML-NG|IQ-TREE 2|MrBayes|ASTRAL-III|FigTree,
+2026-03-18 14:59:58.608080,anthropic/claude-sonnet-4-6,protein_structure_analysis,naive,1,FastQC|Trimmomatic|UniProt/NCBI|CLUSTALW/MUSCLE|PSIPRED|AlphaFold2|MODELLER|GROMACS|PyMOL|ProSA|PROCHECK|ConSurf,
+2026-03-18 15:00:01.458705,anthropic/claude-sonnet-4-6,protein_structure_analysis,expert,1,FastQC|Trimmomatic|DIAMOND|UniProt/Swiss-Prot Database|AlphaFold2|MODELLER|Rosetta|GROMACS|PROCHECK|ERRAT|VERIFY3D|MolProbity|UCSF ChimeraX|PyMOL|PDBsum|ConSurf|CASTp|AutoDock Vina|APBS|HMMER,
+2026-03-18 15:00:02.517738,deepseek/deepseek-chat,genome_assembly,naive,0,,"<failed_attempts>
+
+<generation number=""1"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""2"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""3"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+</failed_attempts>
+
+<last_exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</last_exception>"
+2026-03-18 15:00:03.231983,deepseek/deepseek-chat,genome_assembly,expert,0,,"<failed_attempts>
+
+<generation number=""1"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""2"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""3"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+</failed_attempts>
+
+<last_exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</last_exception>"
+2026-03-18 15:00:03.989209,deepseek/deepseek-chat,transcriptome_analysis,naive,0,,"<failed_attempts>
+
+<generation number=""1"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""2"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""3"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+</failed_attempts>
+
+<last_exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</last_exception>"
+2026-03-18 15:00:04.812251,deepseek/deepseek-chat,transcriptome_analysis,expert,0,,"<failed_attempts>
+
+<generation number=""1"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""2"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""3"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+</failed_attempts>
+
+<last_exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</last_exception>"
+2026-03-18 15:00:05.757885,deepseek/deepseek-chat,phylogeny,naive,0,,"<failed_attempts>
+
+<generation number=""1"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""2"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""3"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+</failed_attempts>
+
+<last_exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</last_exception>"
+2026-03-18 15:00:06.673514,deepseek/deepseek-chat,phylogeny,expert,0,,"<failed_attempts>
+
+<generation number=""1"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""2"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""3"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+</failed_attempts>
+
+<last_exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</last_exception>"
+2026-03-18 15:00:07.469916,deepseek/deepseek-chat,protein_structure_analysis,naive,0,,"<failed_attempts>
+
+<generation number=""1"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""2"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""3"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+</failed_attempts>
+
+<last_exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</last_exception>"
+2026-03-18 15:00:08.177260,deepseek/deepseek-chat,protein_structure_analysis,expert,0,,"<failed_attempts>
+
+<generation number=""1"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""2"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+<generation number=""3"">
+<exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</exception>
+<completion>
+    None
+</completion>
+</generation>
+
+</failed_attempts>
+
+<last_exception>
+    Error code: 401 - {'error': {'message': 'Authentication Fails, Your api key: ****AQAA is invalid', 'type': 'authentication_error', 'param': None, 'code': 'invalid_request_error'}}
+</last_exception>"

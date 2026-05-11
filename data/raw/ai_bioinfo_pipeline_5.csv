@@ -1,0 +1,41 @@
+timestamp,model,task,prompt_type,run,tools,tool_count
+2026-03-30 15:39:49.114245,google/gemini-2.5-pro,genome_assembly,naive,1,SPAdes|Pilon,2
+2026-03-30 15:40:06.198440,google/gemini-2.5-pro,genome_assembly,expert,1,SPAdes|Pilon,2
+2026-03-30 15:40:10.963849,google/gemini-2.5-pro,variant_calling,naive,1,BWA-MEM|GATK HaplotypeCaller,2
+2026-03-30 15:40:30.139371,google/gemini-2.5-pro,variant_calling,expert,1,bwa-mem|samtools|GATK MarkDuplicates|GATK HaplotypeCaller,4
+2026-03-30 15:40:41.812982,google/gemini-2.5-pro,transcriptome_assembly,naive,1,Trinity|CD-HIT-EST|BUSCO,3
+2026-03-30 15:40:53.280945,google/gemini-2.5-pro,transcriptome_assembly,expert,1,Trinity|BUSCO|TransDecoder,3
+2026-03-30 15:41:01.989271,google/gemini-2.5-pro,metagenomics,naive,1,Kraken2|Bracken|MetaPhlAn|Krona,4
+2026-03-30 15:41:13.452685,google/gemini-2.5-pro,metagenomics,expert,1,Kraken2|Bracken|MetaPhlAn|Centrifuge|Kaiju,5
+2026-03-30 15:41:17.089077,openai/gpt-5.4,genome_assembly,naive,1,SPAdes|Pilon,2
+2026-03-30 15:41:18.975305,openai/gpt-5.4,genome_assembly,expert,1,SPAdes|Pilon|BWA-MEM|SAMtools,4
+2026-03-30 15:41:21.379771,openai/gpt-5.4,variant_calling,naive,1,BWA-MEM|SAMtools|Picard|GATK,4
+2026-03-30 15:41:22.550887,openai/gpt-5.4,variant_calling,expert,1,BWA-MEM2|samtools|Picard|GATK|bcftools,5
+2026-03-30 15:41:23.680337,openai/gpt-5.4,transcriptome_assembly,naive,1,Trinity|rnaSPAdes|Bowtie2|RSEM,4
+2026-03-30 15:41:25.023331,openai/gpt-5.4,transcriptome_assembly,expert,1,rnaSPAdes|Trinity|TransRate|BUSCO|CD-HIT-EST,5
+2026-03-30 15:41:26.865248,openai/gpt-5.4,metagenomics,naive,1,Kraken2|Bracken|MetaPhlAn|Bowtie2,4
+2026-03-30 15:41:27.895704,openai/gpt-5.4,metagenomics,expert,1,Kraken2|Bracken|MetaPhlAn|Bowtie2,4
+2026-03-30 15:41:28.730544,openai/gpt-5.4-mini,genome_assembly,naive,1,SPAdes|Pilon,2
+2026-03-30 15:41:30.299556,openai/gpt-5.4-mini,genome_assembly,expert,1,SPAdes|Pilon|BWA-MEM|Samtools,4
+2026-03-30 15:41:32.082882,openai/gpt-5.4-mini,variant_calling,naive,1,BWA|SAMtools|BCFtools|GATK,4
+2026-03-30 15:41:33.434899,openai/gpt-5.4-mini,variant_calling,expert,1,BWA-MEM|SAMtools|Picard|GATK|bcftools,5
+2026-03-30 15:41:34.238578,openai/gpt-5.4-mini,transcriptome_assembly,naive,1,Trinity|Bowtie2|TransDecoder|BUSCO,4
+2026-03-30 15:41:36.184242,openai/gpt-5.4-mini,transcriptome_assembly,expert,1,Trinity|rnaSPAdes|TransDecoder|CD-HIT-EST|BUSCO,5
+2026-03-30 15:41:37.002673,openai/gpt-5.4-mini,metagenomics,naive,1,Kraken2|Bracken|Krona|MetaPhlAn|LEfSe,5
+2026-03-30 15:41:37.942931,openai/gpt-5.4-mini,metagenomics,expert,1,Kraken2|Bracken|Bowtie2|MetaPhlAn|KneadData,5
+2026-03-30 15:41:40.261071,anthropic/claude-sonnet-4-6,genome_assembly,naive,1,SPAdes|Picard|BWA|Pilon,4
+2026-03-30 15:41:42.457140,anthropic/claude-sonnet-4-6,genome_assembly,expert,1,SPAdes|BWA-MEM|SAMtools|Pilon|QUAST,5
+2026-03-30 15:41:44.617549,anthropic/claude-sonnet-4-6,variant_calling,naive,1,BWA-MEM|SAMtools|GATK|Picard,4
+2026-03-30 15:41:46.707031,anthropic/claude-sonnet-4-6,variant_calling,expert,1,BWA-MEM2|SAMtools|GATK MarkDuplicates|GATK BaseRecalibrator|GATK HaplotypeCaller,5
+2026-03-30 15:41:49.100364,anthropic/claude-sonnet-4-6,transcriptome_assembly,naive,1,Trinity|CD-HIT-EST|TransDecoder|BUSCO|BLAST,5
+2026-03-30 15:41:51.442663,anthropic/claude-sonnet-4-6,transcriptome_assembly,expert,1,Trinity|CD-HIT-EST|TransDecoder|BUSCO|DIAMOND,5
+2026-03-30 15:41:53.856577,anthropic/claude-sonnet-4-6,metagenomics,naive,1,Kraken2|Bracken|Krona,3
+2026-03-30 15:41:55.231654,anthropic/claude-sonnet-4-6,metagenomics,expert,1,Kraken2|Bracken|Krona|MetaPhlAn,4
+2026-03-30 15:41:58.598520,deepseek/deepseek-chat,genome_assembly,naive,1,SPAdes|Pilon|BWA|SAMtools|BCFtools,5
+2026-03-30 15:42:01.576919,deepseek/deepseek-chat,genome_assembly,expert,1,SPAdes|Pilon|Bowtie2|SAMtools|BCFtools,5
+2026-03-30 15:42:04.548100,deepseek/deepseek-chat,variant_calling,naive,1,BWA|samtools|GATK|bcftools|SnpEff,5
+2026-03-30 15:42:07.620261,deepseek/deepseek-chat,variant_calling,expert,1,BWA|samtools|GATK|bcftools|FreeBayes,5
+2026-03-30 15:42:10.678556,deepseek/deepseek-chat,transcriptome_assembly,naive,1,Trinity|rnaSPAdes|Trans-ABySS|SOAPdenovo-Trans|Oases,5
+2026-03-30 15:42:13.824464,deepseek/deepseek-chat,transcriptome_assembly,expert,1,Trinity|rnaSPAdes|Trans-ABySS|SOAPdenovo-Trans|Velvet-Oases,5
+2026-03-30 15:42:16.937936,deepseek/deepseek-chat,metagenomics,naive,1,Kraken2|Bracken|MetaPhlAn|HUMAnN|MetaBAT2,5
+2026-03-30 15:42:20.009718,deepseek/deepseek-chat,metagenomics,expert,1,Kraken2|Bracken|MetaPhlAn|HUMAnN|SAMSA2,5

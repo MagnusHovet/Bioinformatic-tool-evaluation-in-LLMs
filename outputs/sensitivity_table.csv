@@ -1,0 +1,6 @@
+model,median_rate,median_ci_low,median_ci_high,tertile_rate,tertile_ci_low,tertile_ci_high,rank_gap_mean,rank_gap_ci_low,rank_gap_ci_high
+Gemini 2.5 Pro,0.3082,0.2327,0.3775,0.0149,0.0,0.0448,-0.0821,-0.138,-0.0264
+GPT-5.4,0.3812,0.3062,0.4562,0.0,0.0,0.0,0.1735,0.143,0.2021
+GPT-5.4 Mini,0.5562,0.4812,0.6312,0.3871,0.2258,0.5806,0.1883,0.1589,0.2176
+Claude Sonnet 4.6,0.35,0.275,0.425,0.1081,0.027,0.2162,-0.09,-0.14,-0.0438
+DeepSeek Chat,0.0127,0.0,0.0316,0.0,0.0,0.0,-0.1925,-0.2372,-0.1512

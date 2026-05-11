@@ -1,0 +1,51 @@
+timestamp,model,task,prompt_type,run,tools,tool_count
+2026-04-20 10:42:59.930140,google/gemini-2.5-pro,genome_assembly,naive,1,SPAdes|QUAST,2
+2026-04-20 10:43:08.944426,google/gemini-2.5-pro,genome_assembly,expert,1,SPAdes|QUAST,2
+2026-04-20 10:43:12.159558,google/gemini-2.5-pro,variant_detection,naive,1,bwa|freebayes|delly,3
+2026-04-20 10:43:18.628971,google/gemini-2.5-pro,variant_detection,expert,1,bwa-mem|bcftools|manta,3
+2026-04-20 10:43:27.520090,google/gemini-2.5-pro,RNA-seq,naive,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:43:37.598072,google/gemini-2.5-pro,RNA-seq,expert,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:43:58.627171,google/gemini-2.5-pro,RNA-seq(SC),naive,1,kallisto|bustools|sctransform|MAST,4
+2026-04-20 10:44:10.174434,google/gemini-2.5-pro,RNA-seq(SC),expert,1,Kallisto|bustools|SCTransform|MAST,4
+2026-04-20 10:44:13.788473,google/gemini-2.5-pro,Homology,naive,1,BLASTp|MAFFT|RAxML,3
+2026-04-20 10:44:20.023036,google/gemini-2.5-pro,Homology,expert,1,BLASTp|MAFFT|IQ-TREE,3
+2026-04-20 10:44:24.124832,openai/gpt-5.4,genome_assembly,naive,1,SPAdes|QUAST,2
+2026-04-20 10:44:25.519333,openai/gpt-5.4,genome_assembly,expert,1,SPAdes|QUAST,2
+2026-04-20 10:44:27.381100,openai/gpt-5.4,variant_detection,naive,1,BWA-MEM|FreeBayes|Manta,3
+2026-04-20 10:44:28.711360,openai/gpt-5.4,variant_detection,expert,1,BWA-MEM|FreeBayes|Manta,3
+2026-04-20 10:44:30.986964,openai/gpt-5.4,RNA-seq,naive,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:44:32.182989,openai/gpt-5.4,RNA-seq,expert,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:44:33.452180,openai/gpt-5.4,RNA-seq(SC),naive,1,STARsolo|Alevin|Harmony|MAST,4
+2026-04-20 10:44:34.967760,openai/gpt-5.4,RNA-seq(SC),expert,1,STARsolo|Alevin|Harmony|MAST,4
+2026-04-20 10:44:35.990769,openai/gpt-5.4,Homology,naive,1,BLASTP|MAFFT|IQ-TREE,3
+2026-04-20 10:44:37.999591,openai/gpt-5.4,Homology,expert,1,BLASTP|MAFFT|IQ-TREE,3
+2026-04-20 10:44:38.945116,openai/gpt-5.4-mini,genome_assembly,naive,1,SPAdes|QUAST,2
+2026-04-20 10:44:40.044592,openai/gpt-5.4-mini,genome_assembly,expert,1,SPAdes|QUAST,2
+2026-04-20 10:44:41.027683,openai/gpt-5.4-mini,variant_detection,naive,1,BWA-MEM|bcftools|Manta,3
+2026-04-20 10:44:42.314223,openai/gpt-5.4-mini,variant_detection,expert,1,BWA-MEM|GATK HaplotypeCaller|Manta,3
+2026-04-20 10:44:43.273666,openai/gpt-5.4-mini,RNA-seq,naive,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:44:44.124516,openai/gpt-5.4-mini,RNA-seq,expert,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:44:45.459032,openai/gpt-5.4-mini,RNA-seq(SC),naive,1,STARsolo|Cell Ranger|Seurat|DESeq2,4
+2026-04-20 10:44:46.309000,openai/gpt-5.4-mini,RNA-seq(SC),expert,1,STARsolo|featureCounts|Seurat|MAST,4
+2026-04-20 10:44:47.207756,openai/gpt-5.4-mini,Homology,naive,1,BLASTP|MAFFT|IQ-TREE,3
+2026-04-20 10:44:48.034879,openai/gpt-5.4-mini,Homology,expert,1,BLASTP|MAFFT|IQ-TREE,3
+2026-04-20 10:44:49.772816,anthropic/claude-sonnet-4-6,genome_assembly,naive,1,SPAdes|QUAST,2
+2026-04-20 10:44:51.144684,anthropic/claude-sonnet-4-6,genome_assembly,expert,1,SPAdes|QUAST,2
+2026-04-20 10:44:52.358145,anthropic/claude-sonnet-4-6,variant_detection,naive,1,BWA-MEM|FreeBayes|Manta,3
+2026-04-20 10:44:54.030080,anthropic/claude-sonnet-4-6,variant_detection,expert,1,BWA-MEM|DeepVariant|Manta,3
+2026-04-20 10:44:55.372571,anthropic/claude-sonnet-4-6,RNA-seq,naive,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:44:57.144437,anthropic/claude-sonnet-4-6,RNA-seq,expert,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:44:58.478252,anthropic/claude-sonnet-4-6,RNA-seq(SC),naive,1,STARsolo|Cell Ranger|Harmony|DESeq2,4
+2026-04-20 10:45:00.177899,anthropic/claude-sonnet-4-6,RNA-seq(SC),expert,1,STARsolo|Cell Ranger|Scran|DESeq2,4
+2026-04-20 10:45:01.349217,anthropic/claude-sonnet-4-6,Homology,naive,1,BLASTP|MUSCLE|IQ-TREE,3
+2026-04-20 10:45:03.074835,anthropic/claude-sonnet-4-6,Homology,expert,1,DIAMOND|MAFFT|IQ-TREE,3
+2026-04-20 10:45:05.766464,deepseek/deepseek-chat,genome_assembly,naive,1,SPAdes|QUAST,2
+2026-04-20 10:45:08.077037,deepseek/deepseek-chat,genome_assembly,expert,1,SPAdes|QUAST,2
+2026-04-20 10:45:10.618171,deepseek/deepseek-chat,variant_detection,naive,1,BWA|GATK HaplotypeCaller|Manta,3
+2026-04-20 10:45:13.497407,deepseek/deepseek-chat,variant_detection,expert,1,BWA-MEM|GATK HaplotypeCaller|Manta,3
+2026-04-20 10:45:16.197555,deepseek/deepseek-chat,RNA-seq,naive,1,STAR|featureCounts|STAR-Fusion|DESeq2,4
+2026-04-20 10:45:18.621872,deepseek/deepseek-chat,RNA-seq,expert,1,STAR|featureCounts|Arriba|DESeq2,4
+2026-04-20 10:45:21.016811,deepseek/deepseek-chat,RNA-seq(SC),naive,1,CellRanger|CellRanger|Seurat|MAST,4
+2026-04-20 10:45:23.491062,deepseek/deepseek-chat,RNA-seq(SC),expert,1,STAR|CellRanger|Seurat|MAST,4
+2026-04-20 10:45:26.251926,deepseek/deepseek-chat,Homology,naive,1,BLAST|MAFFT|RAxML,3
+2026-04-20 10:45:28.560782,deepseek/deepseek-chat,Homology,expert,1,BLASTP|MAFFT|RAxML,3

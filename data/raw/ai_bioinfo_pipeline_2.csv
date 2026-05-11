@@ -1,0 +1,33 @@
+timestamp,model,task,prompt_type,run,tools
+2026-03-18 15:05:56.884258,google/gemini-2.5-pro,genome_assembly,naive,1,FastQC|Trimmomatic|Flye|Pilon
+2026-03-18 15:06:07.540640,google/gemini-2.5-pro,genome_assembly,expert,1,FastQC|Trimmomatic|Flye|Racon|Pilon
+2026-03-18 15:06:12.774061,google/gemini-2.5-pro,transcriptome_analysis,naive,1,Trinity|RSEM|DESeq2
+2026-03-18 15:06:26.671914,google/gemini-2.5-pro,transcriptome_analysis,expert,1,FastQC|Trimmomatic|STAR|StringTie|Salmon|DESeq2
+2026-03-18 15:06:37.204318,google/gemini-2.5-pro,phylogeny,naive,1,Clustal Omega|PhyML|FigTree
+2026-03-18 15:06:52.654177,google/gemini-2.5-pro,phylogeny,expert,1,MAFFT|TrimAl|IQ-TREE
+2026-03-18 15:06:59.933552,google/gemini-2.5-pro,protein_structure_analysis,naive,1,PSIPRED|I-TASSER|PROCHECK|CASTp
+2026-03-18 15:07:15.228810,google/gemini-2.5-pro,protein_structure_analysis,expert,1,AlphaFold2|RoseTTAFold|MolProbity|PROCHECK|GROMACS|COACH|DALI|PyMOL
+2026-03-18 15:07:18.137718,openai/gpt-5.4,genome_assembly,naive,1,FastQC|fastp|Filtlong|Flye|SPAdes|Unicycler|Racon|Medaka|Pilon|QUAST|Bandage|BUSCO
+2026-03-18 15:07:20.060183,openai/gpt-5.4,genome_assembly,expert,1,FastQC|fastp|NanoPlot|Filtlong|Flye|SPAdes|Unicycler|Medaka|Pilon|BWA-MEM|Minimap2|QUAST|BUSCO|CheckM|Bandage|Prokka
+2026-03-18 15:07:21.790599,openai/gpt-5.4,transcriptome_analysis,naive,1,FastQC|Trimmomatic|SortMeRNA|Trinity|Bowtie2|Salmon|RSEM|DESeq2|tximport|BUSCO
+2026-03-18 15:07:23.249928,openai/gpt-5.4,transcriptome_analysis,expert,1,FastQC|MultiQC|fastp|SortMeRNA|STAR|Samtools|StringTie|gffcompare|Salmon|tximport|DESeq2
+2026-03-18 15:07:25.181111,openai/gpt-5.4,phylogeny,naive,1,FastQC|fastp|SPAdes|Prokka|OrthoFinder|MAFFT|trimAl|IQ-TREE|RAxML-NG|ModelTest-NG|FigTree|iTOL
+2026-03-18 15:07:29.590679,openai/gpt-5.4,phylogeny,expert,1,NCBI Entrez/EDirect or SRA Toolkit|fastp|FastQC|MultiQC|Cutadapt|Kraken2|Bowtie2|SPAdes or SKESA|QUAST|BUSCO|Prodigal|MAFFT|MUSCLE|trimAl|BMGE|IQ-TREE 2|ModelFinder|UFBoot2|SH-aLRT|RAxML-NG|ASTRAL|OrthoFinder|HMMER|MAFFT-linsi|ClipKIT|AMAS|FASconCAT-G|PartitionFinder2|BEAST 2|TreeTime|FigTree|iTOL|Snakemake|Conda/Mamba|Docker/Singularity
+2026-03-18 15:07:32.144427,openai/gpt-5.4,protein_structure_analysis,naive,1,AlphaFold2/ColabFold|HHblits or MMseqs2|RoseTTAFold|I-TASSER|SWISS-MODEL|MolProbity|QMEAN|TM-align|PyMOL or UCSF ChimeraX|Dali|InterProScan|ConSurf|CASTp or fpocket|GROMACS
+2026-03-18 15:07:36.308413,openai/gpt-5.4,protein_structure_analysis,expert,1,AlphaFold 3 or AlphaFold2/ColabFold|MMseqs2|HHblits|JackHMMER|Foldseek|DALI|TM-align|HMMER|InterProScan|Pfam|PSIPRED|IUPred3|SignalP 6.0|DeepTMHMM|ConSurf|MolProbity|QMEANDisCo|VoroMQA|DSSP|Fpocket|PyMOL|UCSF ChimeraX|Snakemake|Conda/Mamba|Docker/Singularity|Nextflow|Git
+2026-03-18 15:07:38.173885,anthropic/claude-sonnet-4-6,genome_assembly,naive,1,FastQC|Trimmomatic|Flye|Racon|Medaka|Quast|Bandage
+2026-03-18 15:07:40.000970,anthropic/claude-sonnet-4-6,genome_assembly,expert,1,FastQC|Fastp|SPAdes|Bandage|Pilon|QUAST|Prokka
+2026-03-18 15:07:43.317909,anthropic/claude-sonnet-4-6,transcriptome_analysis,naive,1,FastQC|Trimmomatic|Trinity|HISAT2|StringTie|DESeq2
+2026-03-18 15:07:45.224048,anthropic/claude-sonnet-4-6,transcriptome_analysis,expert,1,FastQC|Trim Galore|HISAT2|StringTie|SAMtools|Salmon|DESeq2|MultiQC
+2026-03-18 15:07:47.336953,anthropic/claude-sonnet-4-6,phylogeny,naive,1,FastQC|Trimmomatic|MAFFT|trimAl|ModelTest-NG|RAxML-NG|IQ-TREE|MrBayes|FigTree|iTOL
+2026-03-18 15:07:50.270076,anthropic/claude-sonnet-4-6,phylogeny,expert,1,FastQC|Trimmomatic|SPAdes|Prokka|OrthoFinder|MAFFT|trimAl|ModelTest-NG|RAxML-NG|IQ-TREE 2|MrBayes|ASTRAL-III|FigTree
+2026-03-18 15:07:52.936699,anthropic/claude-sonnet-4-6,protein_structure_analysis,naive,1,AlphaFold2|RoseTTAFold|MODELLER|SWISS-MODEL|GROMACS|PyMOL|PROCHECK|ERRAT|ConSurf|PDBsum
+2026-03-18 15:07:56.582525,anthropic/claude-sonnet-4-6,protein_structure_analysis,expert,1,FastQC|Trimmomatic|UniProt/NCBI Protein Database|PSI-BLAST|AlphaFold2|RoseTTAFold|MODELLER|SWISS-MODEL|GROMACS|PROCHECK|ERRAT|MolProbity|VERIFY3D|PyMOL|UCSF ChimeraX|PDBsum|ConSurf|COACH|FoldSeek|DALI Server
+2026-03-18 15:07:59.480812,deepseek/deepseek-chat,genome_assembly,naive,1,FastQC|Trimmomatic|SPAdes|QUAST|Pilon
+2026-03-18 15:08:02.489932,deepseek/deepseek-chat,genome_assembly,expert,1,FastQC|Trimmomatic|FastQC|SPAdes|QUAST|CheckM|Pilon|Prokka
+2026-03-18 15:08:05.454730,deepseek/deepseek-chat,transcriptome_analysis,naive,1,FastQC|Trimmomatic|HISAT2|StringTie|featureCounts|DESeq2
+2026-03-18 15:08:08.779874,deepseek/deepseek-chat,transcriptome_analysis,expert,1,fastp|Trinity|Salmon|DESeq2|edgeR|StringTie|featureCounts|MultiQC
+2026-03-18 15:08:12.196603,deepseek/deepseek-chat,phylogeny,naive,1,FASTQC|Trimmomatic|BLAST|MAFFT|IQ-TREE|FigTree
+2026-03-18 15:08:15.564776,deepseek/deepseek-chat,phylogeny,expert,1,FastQC|Trimmomatic|BWA-MEM|SAMtools|BCFtools|GATK|MAFFT|IQ-TREE|ModelFinder|FigTree
+2026-03-18 15:08:18.976155,deepseek/deepseek-chat,protein_structure_analysis,naive,1,AlphaFold2|SWISS-MODEL|PyMOL|ChimeraX|PROCHECK|MolProbity|DSSP|Pymol|VMD
+2026-03-18 15:08:27.649648,deepseek/deepseek-chat,protein_structure_analysis,expert,1,AlphaFold2|ColabFold|ESMFold|RoseTTAFold|SWISS-MODEL|Phyre2|I-TASSER|Modeller|UCSF Chimera|PyMOL|VMD|PROCHECK|MolProbity|Verify3D|WHAT_CHECK|DSSP|STRIDE|PISA|PDBsum|CASTp|Pymol|ChimeraX|FoldX|HADDOCK|ClusPro|Zdock|HDOCK|AutoDock Vina|GROMACS|AMBER|NAMD|VMD|PyMOL|ChimeraX|BioPython|Biopython|Pandas|NumPy|Matplotlib|Seaborn|Jupyter Notebook|Docker|Singularity|Nextflow|Snakemake|Git|GitHub

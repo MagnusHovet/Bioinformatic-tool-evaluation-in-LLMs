@@ -1,0 +1,41 @@
+timestamp,model,task,prompt_type,run,tools,tool_count
+2026-03-30 11:21:35.906660,google/gemini-2.5-pro,genome_assembly,naive,1,SPAdes|Pilon,2
+2026-03-30 11:21:45.911020,google/gemini-2.5-pro,genome_assembly,expert,1,Unicycler|Pilon,2
+2026-03-30 11:21:55.086886,google/gemini-2.5-pro,transcriptome_analysis,naive,1,STAR|featureCounts|DESeq2,3
+2026-03-30 11:22:01.050173,google/gemini-2.5-pro,transcriptome_analysis,expert,1,salmon|DESeq2,2
+2026-03-30 11:22:05.485582,google/gemini-2.5-pro,phylogeny,naive,1,MAFFT|IQ-TREE,2
+2026-03-30 11:22:12.597950,google/gemini-2.5-pro,phylogeny,expert,1,MAFFT|TrimAl|IQ-TREE,3
+2026-03-30 11:22:23.705015,google/gemini-2.5-pro,protein_structure_analysis,naive,1,AlphaFold2|Procheck|CASTp|DALI|PyMOL,5
+2026-03-30 11:22:38.272918,google/gemini-2.5-pro,protein_structure_analysis,expert,1,AlphaFold2|RoseTTAFold|Procheck|DALI|CASTp,5
+2026-03-30 11:22:40.183679,openai/gpt-5.4,genome_assembly,naive,1,SPAdes|Pilon,2
+2026-03-30 11:22:41.534457,openai/gpt-5.4,genome_assembly,expert,1,SPAdes|Polypolish|POLCA,3
+2026-03-30 11:22:42.979871,openai/gpt-5.4,transcriptome_analysis,naive,1,STAR|featureCounts|DESeq2,3
+2026-03-30 11:22:44.225363,openai/gpt-5.4,transcriptome_analysis,expert,1,STAR|Salmon|DESeq2,3
+2026-03-30 11:22:46.184688,openai/gpt-5.4,phylogeny,naive,1,BWA-MEM|SAMtools|BCFtools|MAFFT|IQ-TREE,5
+2026-03-30 11:22:47.174937,openai/gpt-5.4,phylogeny,expert,1,BWA-MEM2|samtools|bcftools|MAFFT|IQ-TREE 2,5
+2026-03-30 11:22:48.210065,openai/gpt-5.4,protein_structure_analysis,naive,1,AlphaFold|HHblits|DALI|MolProbity|PyMOL,5
+2026-03-30 11:22:49.436900,openai/gpt-5.4,protein_structure_analysis,expert,1,AlphaFold|ColabFold|RoseTTAFold|Foldseek|DALI,5
+2026-03-30 11:22:50.895753,openai/gpt-5.4-mini,genome_assembly,naive,1,SPAdes|Pilon|QUAST,3
+2026-03-30 11:22:51.546409,openai/gpt-5.4-mini,genome_assembly,expert,1,SPAdes|BWA-MEM|Pilon|QUAST,4
+2026-03-30 11:22:52.737867,openai/gpt-5.4-mini,transcriptome_analysis,naive,1,FastQC|Trim Galore|STAR|featureCounts|DESeq2,5
+2026-03-30 11:22:53.596597,openai/gpt-5.4-mini,transcriptome_analysis,expert,1,FastQC|fastp|STAR|featureCounts|DESeq2,5
+2026-03-30 11:22:54.410933,openai/gpt-5.4-mini,phylogeny,naive,1,BWA-MEM2|samtools|MAFFT|IQ-TREE 2|FigTree,5
+2026-03-30 11:22:55.223812,openai/gpt-5.4-mini,phylogeny,expert,1,BWA-MEM2|MAFFT|IQ-TREE 2|ModelFinder|UFBoot2,5
+2026-03-30 11:22:56.326415,openai/gpt-5.4-mini,protein_structure_analysis,naive,1,AlphaFold/ColabFold for structure prediction|PyMOL or UCSF ChimeraX for structure visualization and residue inspection|DALI or TM-align for structural similarity search|MolProbity for structure quality assessment|PROPKA or PDB2PQR for pKa/surface charge analysis,5
+2026-03-30 11:22:57.221574,openai/gpt-5.4-mini,protein_structure_analysis,expert,1,AlphaFold2|ColabFold|HMMER|PyMOL|DALI,5
+2026-03-30 11:22:59.414026,anthropic/claude-sonnet-4-6,genome_assembly,naive,1,FastQC|Trimmomatic|SPAdes|Pilon|QUAST,5
+2026-03-30 11:23:01.090384,anthropic/claude-sonnet-4-6,genome_assembly,expert,1,FastQC|SPAdes|Pilon|QUAST|Trimmomatic,5
+2026-03-30 11:23:03.275167,anthropic/claude-sonnet-4-6,transcriptome_analysis,naive,1,FastQC|Trimmomatic|STAR|featureCounts|DESeq2,5
+2026-03-30 11:23:05.327019,anthropic/claude-sonnet-4-6,transcriptome_analysis,expert,1,STAR|RSEM|DESeq2|MultiQC|fastp,5
+2026-03-30 11:23:07.753581,anthropic/claude-sonnet-4-6,phylogeny,naive,1,BWA|SAMtools|BCFtools|MAFFT|IQ-TREE,5
+2026-03-30 11:23:10.102498,anthropic/claude-sonnet-4-6,phylogeny,expert,1,BWA|SAMtools|GATK|MAFFT|IQ-TREE,5
+2026-03-30 11:23:12.513316,anthropic/claude-sonnet-4-6,protein_structure_analysis,naive,1,AlphaFold2|Swiss-MODEL|PyMOL|PROCHECK|ConSurf,5
+2026-03-30 11:23:14.844402,anthropic/claude-sonnet-4-6,protein_structure_analysis,expert,1,AlphaFold2|OpenMM|GROMACS|DALI|PyMOL,5
+2026-03-30 11:23:17.259592,deepseek/deepseek-chat,genome_assembly,naive,1,SPAdes|Pilon|QUAST|BUSCO,4
+2026-03-30 11:23:19.462327,deepseek/deepseek-chat,genome_assembly,expert,1,SPAdes|Flye|Pilon|Racon|QUAST,5
+2026-03-30 11:23:21.367327,deepseek/deepseek-chat,transcriptome_analysis,naive,1,STAR|featureCounts|DESeq2,3
+2026-03-30 11:23:23.076076,deepseek/deepseek-chat,transcriptome_analysis,expert,1,STAR|featureCounts|DESeq2,3
+2026-03-30 11:23:25.116410,deepseek/deepseek-chat,phylogeny,naive,1,MAFFT|trimAl|IQ-TREE|FigTree,4
+2026-03-30 11:23:27.500315,deepseek/deepseek-chat,phylogeny,expert,1,MAFFT|Gblocks|IQ-TREE|ModelFinder|TreeShrink,5
+2026-03-30 11:23:29.619977,deepseek/deepseek-chat,protein_structure_analysis,naive,1,AlphaFold2|PyMOL|UCSF Chimera|PROCHECK|MolProbity,5
+2026-03-30 11:23:31.635112,deepseek/deepseek-chat,protein_structure_analysis,expert,1,AlphaFold2|ColabFold|ESMFold|PyMOL|ChimeraX,5
