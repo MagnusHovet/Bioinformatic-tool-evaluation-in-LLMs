@@ -10,21 +10,21 @@ operationalising "popularity bias":
   Method 1 — Median split (primary analysis)
       A pipeline is flagged when it sits above the within-task median on
       popularity AND below the within-task median on accuracy.
-      Chance baseline: 25 %.
+      Chance baseline: 25%.
 
   Method 2 — Tertile (conservative)
       Only unambiguous cases count: top third on popularity AND bottom
       third on accuracy.  Rows in the middle third of either dimension
       are excluded from the flag.  This avoids classifying borderline
-      pipelines.  Chance baseline: ~11 % (1/3 × 1/3).
+      pipelines.  Chance baseline: ~11% (1/3 × 1/3).
       Note: tertiles are computed at the unique-pipeline level to avoid
       artefacts from the high repeat rate across runs.
 
   Method 3 — Continuous rank gap
       pop_rank − acc_rank, where both ranks are within-task percentile
-      ranks.  Positive values mean the model recommended a pipeline
-      ranked higher on popularity than on accuracy.  No thresholding;
-      preserves all continuous information.
+      ranks.  Positive values mean the model recommended a pipeline ranked
+      higher on popularity than on accuracy.  No thresholding; preserves
+      all continuous information.
 
 If the direction and relative ordering of models is consistent across
 all three methods, the primary result is robust to the choice of
@@ -32,8 +32,8 @@ operationalisation.
 
 Output
 ------
-  sensitivity_table.csv   — numeric results for all three methods
-  fig_sensitivity.png     — three-panel figure for the paper
+  outputs/sensitivity_table.csv
+  outputs/figures_/fig_sensitivity.png
 
 Usage
 -----
@@ -51,6 +51,7 @@ import matplotlib.gridspec as gridspec
 from scipy.stats import bootstrap
 
 from config.settings import SCORED_DATA_PATH, FIGURES_PATH, MODELS
+
 
 # ── Style ─────────────────────────────────────────────────────────────
 
@@ -75,9 +76,19 @@ MODEL_LABELS = {
 MODEL_COLORS = ["#2166ac", "#4dac26", "#b8860b", "#d6604d", "#c51b7d"]
 
 
-# ── Data & feature construction ───────────────────────────────────────
+# ── Data loading ──────────────────────────────────────────────────────
 
 def load_data():
+    """
+    Load scored pipeline data and reconstruct the composite popularity index.
+
+    Stars and forks (r = 0.94) are averaged first into a single GitHub
+    signal, then averaged with citations — giving each source 50% weight
+    rather than letting GitHub dominate at 2/3.
+
+    Rows with any NaN in the four pipeline score columns are dropped, as
+    all three popularity signals are required for the sensitivity methods.
+    """
     df = pd.read_csv(SCORED_DATA_PATH)
     df = df.dropna(subset=[
         "pipeline_accuracy",
@@ -86,9 +97,6 @@ def load_data():
         "pipeline_forks",
     ])
 
-    # Popularity index: citations vs mean GitHub signal (50/50 weight).
-    # Stars and forks are combined first because they are r=0.94 correlated;
-    # treating them separately would give GitHub 2/3 weight vs citations' 1/3.
     github_signal  = df[["pipeline_stars", "pipeline_forks"]].mean(axis=1)
     df["pop_index"] = pd.concat(
         [df["pipeline_citations"], github_signal], axis=1
@@ -97,12 +105,12 @@ def load_data():
     return df
 
 
-# ── Method 1: Median split ────────────────────────────────────────────
+# ── Method 1 — Median split ───────────────────────────────────────────
 
 def method_median(df):
     """
     Within each task, flag pipelines above the popularity median AND
-    below the accuracy median. This is the primary analysis metric.
+    below the accuracy median.  This is the primary analysis metric.
 
     Returns a copy of df with 'median_flag' added (0/1).
     """
@@ -119,25 +127,25 @@ def method_median(df):
     return df
 
 
-# ── Method 2: Tertile ─────────────────────────────────────────────────
+# ── Method 2 — Tertile ────────────────────────────────────────────────
 
 def method_tertile(df):
     """
     Conservative version of the bias flag.
 
     Pipelines in the middle third of either popularity or accuracy are
-    excluded — only clear cases count. This avoids the boundary
+    excluded — only clear cases count.  This avoids the boundary
     sensitivity of the median split.
 
     Because models repeat the same recommendation across many runs
-    (up to 95% repeat rate), computing tertiles on all rows would
-    inflate the importance of the most-frequently-recommended pipeline.
-    Instead, tertiles are computed on the set of *unique* pipelines
-    per task, then mapped back to all rows.
+    (up to 95% repeat rate), computing tertiles on all rows would inflate
+    the importance of the most-frequently-recommended pipeline.  Instead,
+    tertiles are computed on the set of unique pipelines per task, then
+    mapped back to all rows.
 
     Returns a copy of df with 'tertile_flag' added (0/1 or NaN).
-    NaN = pipeline falls in the excluded middle third on either
-    dimension and is not counted as either biased or unbiased.
+    NaN = pipeline falls in the excluded middle third on either dimension
+    and is not counted as either biased or unbiased.
     """
     df = df.copy()
     df["tertile_flag"] = np.nan
@@ -146,7 +154,7 @@ def method_tertile(df):
         task_mask = df["task"] == task
         task_rows = df[task_mask].copy()
 
-        # Rank at unique-pipeline level to avoid repeat-rate artefacts
+        # ── Compute tertiles at unique-pipeline level ─────────────────
         unique = task_rows.drop_duplicates(
             subset=["pop_index", "pipeline_accuracy"]
         ).copy()
@@ -162,26 +170,22 @@ def method_tertile(df):
             acc_mid = not acc_hi and not acc_lo
 
             if pop_mid or acc_mid:
-                return np.nan     # excluded middle — not counted
+                return np.nan   # excluded middle — not counted
             if pop_hi and acc_lo:
-                return 1.0        # unambiguous bias case
-            return 0.0            # unambiguous non-bias case
+                return 1.0      # unambiguous bias case
+            return 0.0          # unambiguous non-bias case
 
         unique["flag"] = unique.apply(classify, axis=1)
 
-        # Map unique-pipeline flags back to all rows for this task
-        lookup = unique.set_index(
-            ["pop_index", "pipeline_accuracy"]
-        )["flag"]
-        flags = task_rows.set_index(
-            ["pop_index", "pipeline_accuracy"]
-        ).index.map(lookup)
+        # ── Map flags back to all rows for this task ──────────────────
+        lookup = unique.set_index(["pop_index", "pipeline_accuracy"])["flag"]
+        flags  = task_rows.set_index(["pop_index", "pipeline_accuracy"]).index.map(lookup)
         df.loc[task_mask, "tertile_flag"] = flags.values
 
     return df
 
 
-# ── Method 3: Continuous rank gap ─────────────────────────────────────
+# ── Method 3 — Continuous rank gap ───────────────────────────────────
 
 def method_rank_gap(df):
     """
@@ -190,18 +194,18 @@ def method_rank_gap(df):
     For each recommendation, compute within-task percentile ranks for
     both pop_index and pipeline_accuracy, then take the difference:
 
-        rank_gap = pop_rank - acc_rank
+        rank_gap = pop_rank − acc_rank
 
     Positive values: model chose a pipeline ranked higher on popularity
-    than on accuracy — consistent with a popularity bias.
+    than on accuracy — consistent with popularity bias.
     Negative values: model chose a pipeline ranked higher on accuracy
     than on popularity — accuracy-aligned behaviour.
 
-    No information is discarded to a threshold. Used as a robustness
+    No information is discarded to a threshold.  Used as a robustness
     check: if the sign and model ordering match Methods 1 and 2, the
     primary finding is not an artefact of the threshold choice.
 
-    Returns a copy of df with 'pop_rank', 'acc_rank', 'rank_gap' added.
+    Returns a copy of df with 'pop_rank', 'acc_rank', and 'rank_gap' added.
     """
     df = df.copy()
 
@@ -216,28 +220,32 @@ def method_rank_gap(df):
 
 def build_summary_table(df_m1, df_m2, df_m3):
     """
-    Compute per-model point estimates and 95% bootstrap CIs for each
-    method. Returns a tidy DataFrame for export and printing.
+    Compute per-model point estimates and 95% bootstrap CIs (2000 resamples,
+    percentile method) for each sensitivity method.
+
+    Returns a tidy DataFrame suitable for export and the console report.
     """
     rows = []
 
     for m in MODEL_ORDER:
         label = MODEL_LABELS[m]
 
-        # Method 1 — median flag rate
+        # ── Method 1: median flag rate ────────────────────────────────
         v1  = df_m1[df_m1["model"] == m]["median_flag"].values
         r1  = v1.mean()
         ci1 = bootstrap((v1,), np.mean, n_resamples=2000,
                         confidence_level=0.95, method="percentile")
 
-        # Method 2 — tertile flag rate (NaNs excluded from denominator)
+        # ── Method 2: tertile flag rate (NaNs excluded) ───────────────
         v2  = df_m2[df_m2["model"] == m]["tertile_flag"].dropna().values
         r2  = v2.mean() if len(v2) > 0 else np.nan
-        ci2 = (bootstrap((v2,), np.mean, n_resamples=2000,
-                         confidence_level=0.95, method="percentile")
-               if len(v2) > 1 else None)
+        ci2 = (
+            bootstrap((v2,), np.mean, n_resamples=2000,
+                      confidence_level=0.95, method="percentile")
+            if len(v2) > 1 else None
+        )
 
-        # Method 3 — mean rank gap
+        # ── Method 3: mean rank gap ───────────────────────────────────
         v3  = df_m3[df_m3["model"] == m]["rank_gap"].values
         r3  = v3.mean()
         ci3 = bootstrap((v3,), np.mean, n_resamples=2000,
@@ -266,14 +274,13 @@ def plot_sensitivity(table):
     Three-panel horizontal bar / dot-and-whisker figure.
 
     Panel A — Median split rate (primary metric), reference at 25%.
-    Panel B — Tertile rate (conservative), reference at 11% (1/3 x 1/3).
+    Panel B — Tertile rate (conservative), reference at 11% (1/3 × 1/3).
     Panel C — Mean rank gap (continuous), reference at 0.
 
     Models are shown in the same order across all panels so the reader
-    can visually check consistency of ranking. Panel C omits y-axis
+    can visually check consistency of ranking.  Panel C omits y-axis
     labels since they are already shown in panels A and B.
     """
-
     labels = [MODEL_LABELS[m] for m in MODEL_ORDER]
     y      = np.arange(len(MODEL_ORDER))
 
@@ -290,7 +297,7 @@ def plot_sensitivity(table):
         ax.set_xlabel(xlabel, fontsize=9)
         ax.set_title(title, fontsize=10, fontweight="bold", loc="left")
 
-    # ── Panel A: Median split ─────────────────────────────────────────
+    # ── Panel A — Median split ────────────────────────────────────────
     ax     = axes[0]
     rates  = table["median_rate"].values
     xerr_l = rates - table["median_ci_low"].values
@@ -308,9 +315,9 @@ def plot_sensitivity(table):
     _fmt(ax,
          title="A — Median split\n(primary metric)",
          xlabel="Popularity-over-accuracy rate",
-         ref=0.25, ref_label="Chance (25 %)")
+         ref=0.25, ref_label="Chance (25%)")
 
-    # ── Panel B: Tertile ──────────────────────────────────────────────
+    # ── Panel B — Tertile ─────────────────────────────────────────────
     ax     = axes[1]
     rates  = table["tertile_rate"].values
     xerr_l = rates - table["tertile_ci_low"].values
@@ -329,9 +336,9 @@ def plot_sensitivity(table):
     _fmt(ax,
          title="B — Tertile\n(conservative, middle excluded)",
          xlabel="Popularity-over-accuracy rate",
-         ref=0.111, ref_label="Chance (11 %)")
+         ref=0.111, ref_label="Chance (11%)")
 
-    # ── Panel C: Rank gap ─────────────────────────────────────────────
+    # ── Panel C — Rank gap ────────────────────────────────────────────
     ax     = axes[2]
     gaps   = table["rank_gap_mean"].values
     xerr_l = gaps - table["rank_gap_ci_low"].values
@@ -339,8 +346,7 @@ def plot_sensitivity(table):
 
     ax.errorbar(gaps, y,
                 xerr=[xerr_l, xerr_h],
-                fmt="none", elinewidth=1.6, capsize=4, ecolor="#555",
-                zorder=3)
+                fmt="none", elinewidth=1.6, capsize=4, ecolor="#555", zorder=3)
 
     for i, (gap, color) in enumerate(zip(gaps, MODEL_COLORS)):
         ax.scatter(gap, i, color=color, s=70, zorder=4)
@@ -369,10 +375,9 @@ def plot_sensitivity(table):
 def print_report(table):
     """
     Print a structured summary to stdout including a consistency check:
-    do all three methods agree on which models are above vs. below their
+    do all three methods agree on which models are above vs below their
     respective chance baselines?
     """
-
     MEDIAN_NULL  = 0.25
     TERTILE_NULL = 0.111
     RANK_NULL    = 0.0
@@ -381,15 +386,17 @@ def print_report(table):
     print("  SENSITIVITY ANALYSIS — Popularity Bias Across Three Methods")
     print("=" * 72)
 
-    header = (f"{'Model':<25} {'Median':>8} {'Tertile':>8} "
-              f"{'RankGap':>9}  {'Consistent?':>12}")
+    header = (
+        f"{'Model':<25} {'Median':>8} {'Tertile':>8} "
+        f"{'RankGap':>9}  {'Consistent?':>12}"
+    )
     print(header)
     print("-" * 72)
 
     for _, row in table.iterrows():
-        m1_above = row["median_rate"]   > MEDIAN_NULL
-        m2_above = row["tertile_rate"]  > TERTILE_NULL
-        m3_above = row["rank_gap_mean"] > RANK_NULL
+        m1_above   = row["median_rate"]   > MEDIAN_NULL
+        m2_above   = row["tertile_rate"]  > TERTILE_NULL
+        m3_above   = row["rank_gap_mean"] > RANK_NULL
         consistent = "YES" if (m1_above == m2_above == m3_above) else "NO ⚠"
 
         print(
@@ -401,8 +408,10 @@ def print_report(table):
         )
 
     print("-" * 72)
-    print(f"\nChance baselines:  Median={MEDIAN_NULL:.0%}  "
-          f"Tertile={TERTILE_NULL:.1%}  RankGap={RANK_NULL:.1f}")
+    print(
+        f"\nChance baselines:  Median={MEDIAN_NULL:.0%}  "
+        f"Tertile={TERTILE_NULL:.1%}  RankGap={RANK_NULL:.1f}"
+    )
 
     n_consistent = sum(
         (r["median_rate"] > MEDIAN_NULL) ==
@@ -428,7 +437,7 @@ if __name__ == "__main__":
     print(f"  {len(df)} rows | {df['model'].nunique()} models | "
           f"{df['task'].nunique()} tasks")
 
-    print("\nComputing methods...")
+    print("\nComputing sensitivity methods...")
     df_m1 = method_median(df)
     df_m2 = method_tertile(df)
     df_m3 = method_rank_gap(df)
