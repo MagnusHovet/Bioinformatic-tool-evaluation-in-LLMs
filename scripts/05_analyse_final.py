@@ -26,6 +26,7 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FuncFormatter
 from scipy.stats import spearmanr, bootstrap
 import statsmodels.formula.api as smf
 
@@ -90,7 +91,7 @@ def load_data():
         flagged (1) when it is in the top-popularity half AND the
         bottom-accuracy half.  Chance baseline = 25 %.
 
-    conflict_strength
+    high_acc
         pop_index − pipeline_accuracy.  Positive values mean the
         model recommended a pipeline more popular than accurate.
 
@@ -99,15 +100,11 @@ def load_data():
         the within-task median, 0 otherwise.  Used as the outcome in
         the Fig 4 logistic model.  Using within-task splits avoids
         the quasi-complete separation that arises when a global split
-        is combined with a conflict_strength that is also task-driven.
+        is combined with a high_acc that is also task-driven.
     """
 
     df = pd.read_csv(SCORED_DATA_PATH)
 
-    # Task-relative binary outcome for the logistic model in Fig 4
-    df["high_accuracy"] = df.groupby("task")["pipeline_accuracy"].transform(
-        lambda x: (x > x.median()).astype(int)
-    )
 
     return df
 
@@ -124,7 +121,7 @@ def fig1_bias_rate(df):
     rates, ci_lows, ci_highs = [], [], []
 
     for m in MODEL_ORDER:
-        vals = df[df["model"] == m]["pop_over_acc"].values
+        vals = df[df["model"] == m]["acc_over_pop"].values
         rate = vals.mean()
         res  = bootstrap(
             (vals,), np.mean,
@@ -207,7 +204,7 @@ def fig2_popularity_vs_accuracy(df):
                     color="black", linewidth=1.5)
 
             rho, p = spearmanr(x, y)
-            p_str  = f"p={p:.3f}" if p >= 0.001 else "p<0.001"
+            p_str  = f"p={p:.3f}" if p >= 0.001 else "p<0.001" # type: ignore
             ax.set_title(f"{label}\nρ={rho:.2f}, {p_str}", fontsize=9)
 
             if row == 1:
@@ -238,7 +235,7 @@ def fig3_bias_heatmap(df):
     """
 
     pivot = (
-        df.groupby(["model", "task"])["pop_over_acc"]
+        df.groupby(["model", "task"])["acc_over_pop"]
         .mean()
         .unstack()
     )
@@ -282,7 +279,7 @@ def fig3_bias_heatmap(df):
 def _bootstrap_conflict_slopes(df, n_boot=500, seed=42):
     """
     Parametric bootstrap of the logistic regression slope for
-    conflict_strength → high_accuracy.
+    high_acc → high_accuracy.
 
     Only converged fits are retained to prevent runaway coefficients
     from inflating the CI.  With task-relative high_accuracy and the
@@ -298,28 +295,78 @@ def _bootstrap_conflict_slopes(df, n_boot=500, seed=42):
         sample = df.sample(len(df), replace=True)
         try:
             m = smf.logit(
-                "high_accuracy ~ conflict_strength",
+                "high_acc ~ high_acc",
                 data=sample,
             ).fit(disp=0)
             if m.converged:
-                slopes.append(m.params["conflict_strength"])
+                slopes.append(m.params["high_acc"])
         except Exception:
             continue
 
     return np.array(slopes)
 
+def fig5_recommendation_distribution(df):
+
+    cols = ["pop_over_acc", "acc_over_pop", "acc_and_pop", "no_acc_and_pop"]
+    labels = [
+        "Popularity over accuracy",
+        "Accuracy over popularity", 
+        "High accuracy & popularity",
+        "Low accuracy & popularity",
+    ]
+    colors = ["#E24B4A", "#378ADD", "#639922", "#888780"]
+
+    means = (
+        df.groupby("model")[cols]
+        .mean()
+        .mul(100)
+        .reindex(MODEL_ORDER)
+    )
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    bottoms = np.zeros(len(MODEL_ORDER))
+    for col, label, color in zip(cols, labels, colors):
+        vals = means[col].values
+        ax.barh(
+            [MODEL_LABELS[m] for m in MODEL_ORDER],
+            vals,
+            left=bottoms,
+            color=color,
+            label=label,
+            height=0.6,
+        )
+        for i, (v, b) in enumerate(zip(vals, bottoms)):
+            if v > 6:
+                ax.text(
+                    b + v / 2, i, f"{v:.0f}%",
+                    ha="center", va="center",
+                    fontsize=9, color="white", fontweight="500"
+                )
+        bottoms += vals
+
+
+    ax.set_xlabel("Proportion of recommendations (%)", fontsize=10)
+    ax.set_xlim(0, 100)
+    ax.legend(fontsize=8, frameon=False, bbox_to_anchor=(1.01, 1), loc="upper left")
+    ax.set_title(
+        "Distribution of pipeline recommendation outcomes by model",
+        fontsize=11, fontweight="bold", loc="left"
+    )
+
+    _save("fig5_recommendation_distribution.png")
 
 def fig4_conflict_test(df):
     """
-    Logistic regression of P(high accuracy | conflict_strength).
+    Logistic regression of P(high accuracy | high_acc).
 
-    conflict_strength = pop_index − pipeline_accuracy.
+    high_acc = pop_index − pipeline_accuracy.
     Positive conflict means the model chose a pipeline whose popularity
     exceeds its accuracy — the bias scenario.
 
     high_accuracy is defined within-task (above the task median) to
     avoid quasi-complete separation: a global accuracy split combined
-    with a task-driven conflict_strength creates near-perfect
+    with a task-driven high_acc creates near-perfect
     predictability that causes coefficient explosion (~−500) and
     meaningless CIs.  The within-task split preserves the question
     ("did the model pick the more accurate pipeline for this task?")
@@ -338,12 +385,12 @@ def fig4_conflict_test(df):
 
     # ── Global model ──────────────────────────────────────────────────
     global_model = smf.logit(
-        "high_accuracy ~ conflict_strength", data=df
+        "high_pop ~ high_acc", data=df
     ).fit(disp=0)
 
     print("\n[Fig 4] Global model:")
-    print(f"  conflict_strength coef = {global_model.params['conflict_strength']:.3f}")
-    print(f"  p = {global_model.pvalues['conflict_strength']:.2e}")
+    print(f"  high_acc coef = {global_model.params['high_acc']:.3f}")
+    print(f"  p = {global_model.pvalues['high_acc']:.2e}")
     print(f"  converged = {global_model.converged}")
 
     # ── Bootstrap CI ──────────────────────────────────────────────────
@@ -353,8 +400,8 @@ def fig4_conflict_test(df):
 
     # ── Plot ──────────────────────────────────────────────────────────
     x_range = np.linspace(
-        df["conflict_strength"].min(),
-        df["conflict_strength"].max(),
+        df["high_acc"].min(),
+        df["high_acc"].max(),
         200,
     )
 
@@ -362,10 +409,10 @@ def fig4_conflict_test(df):
 
     # Global curve
     y_global = global_model.predict(
-        pd.DataFrame({"conflict_strength": x_range})
+        pd.DataFrame({"high_acc": x_range})
     )
     ax.plot(x_range, y_global, color="black", linewidth=2.5,
-            label=f"Global  (β={global_model.params['conflict_strength']:.1f}, "
+            label=f"Global  (β={global_model.params['high_acc']:.1f}, "
                   f"95% CI [{ci_low:.1f}, {ci_high:.1f}])")
 
     # Per-model curves — only plot converged fits
@@ -375,12 +422,12 @@ def fig4_conflict_test(df):
             continue
         try:
             mod = smf.logit(
-                "high_accuracy ~ conflict_strength", data=sub
+                "high_pop ~ high_acc", data=sub
             ).fit(disp=0)
             if not mod.converged:
                 print(f"  Skipping {MODEL_LABELS[m]} — did not converge")
                 continue
-            y_mod = mod.predict(pd.DataFrame({"conflict_strength": x_range}))
+            y_mod = mod.predict(pd.DataFrame({"high_acc": x_range}))
             ax.plot(x_range, y_mod, linestyle="--", linewidth=1.4,
                     alpha=0.75, color=color, label=MODEL_LABELS[m])
         except Exception:
@@ -418,9 +465,10 @@ if __name__ == "__main__":
 
     print("Generating main figures...")
 
-    fig1_bias_rate(df)
-    fig2_popularity_vs_accuracy(df)
-    fig3_bias_heatmap(df)
+    #fig1_bias_rate(df)
+    #fig2_popularity_vs_accuracy(df)
+    #fig3_bias_heatmap(df)
     fig4_conflict_test(df)
+    #fig5_recommendation_distribution(df)
 
     print("\nDone — 4 main figures written to:", FIGURES_PATH)

@@ -95,13 +95,18 @@ def add_complete_pop(df):
     df["pop_index"] = pd.concat([df["pipeline_citations"], github_mean], axis=1).mean(axis=1)
 
     df["high_pop"] = df.groupby("task")["pop_index"].transform(
-        lambda x: x > x.median()
+        lambda x: (x > x.median()).astype(int)
     )
     df["high_acc"] = df.groupby("task")["pipeline_accuracy"].transform(
-        lambda x: x > x.median()
+        lambda x: (x > x.median()).astype(int)
     )
 
     df["pop_over_acc"] = (df["high_pop"] & ~df["high_acc"]).astype(int)
+    df["acc_over_pop"] = (df["high_acc"] & ~df["high_pop"]).astype(int)
+    df["acc_and_pop"] = (df["high_acc"] & df["high_pop"]).astype(int)
+    df["no_acc_and_pop"] = (~df["high_acc"].astype(bool) & ~df["high_pop"].astype(bool)).astype(int)
+
+    
     df["conflict_strength"] = df["pop_index"] - df["pipeline_accuracy"]
 
     return df
