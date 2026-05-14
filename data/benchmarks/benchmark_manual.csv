@@ -1,5 +1,5 @@
 tool,accuracy,citations,citations_2026,repo
-arriba,0.955,,,suhrig/arriba
+arriba,0.955,,531.0,suhrig/arriba
 bless,1.0,139.0,182.0,
 breakdancer,0.3225,1295.0,1788.0,genome/breakdancer
 bwamem,0.857,26851.0,56167.0,lh3/bwa

@@ -6,11 +6,13 @@ Main publication figures for:
 
 Figures
 -------
-  Fig 1 — Popularity-bias rate per model (95% bootstrap CI)
-  Fig 2 — Popularity signals vs pipeline accuracy (Spearman scatter)
-  Fig 3 — Bias-rate heatmap by model × task
-  Fig 4 — Conflict test: P(high accuracy) as a function of conflict strength
-  Fig 5 — Distribution of all four recommendation outcome categories per model
+  Fig 1 — Distribution of all four recommendation outcome categories
+          (A = by model, B = by task)
+  Fig 2 — Bias-rate heatmap by model × task
+          (A–D = one panel per binary outcome)
+  Fig 3 — Statistical evidence for popularity bias and between-model
+          heterogeneity (A = two-sided binomial, B = permutation test)
+  Fig 4 — Popularity signals vs pipeline accuracy (Spearman scatter)
 
 Usage
 -----
@@ -27,8 +29,7 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.stats import spearmanr, bootstrap
-import statsmodels.formula.api as smf
+from scipy.stats import spearmanr, bootstrap, binomtest
 
 from config.settings import SCORED_DATA_PATH, FIGURES_PATH, MODELS, TASKS
 
@@ -65,6 +66,8 @@ MODEL_COLORS = ["#2166ac", "#4dac26", "#b8860b", "#d6604d", "#c51b7d"]
 ACC_COLOR    = "#2166ac"
 POP_COLOR    = "#d6604d"
 
+CHANCE = 0.25
+
 
 # ── Helpers ───────────────────────────────────────────────────────────
 
@@ -77,83 +80,313 @@ def _save(name):
     print(f"  Saved → {path}")
 
 
+def _sig_marker(p, rate, chance=CHANCE):
+    """
+    Return a significance marker encoding both significance level and
+    direction relative to the chance baseline.
+
+    Above chance: ↑* / ↑** / ↑***
+    Below chance: ↓* / ↓** / ↓***
+    Not significant: ns
+    """
+    if p >= 0.05:
+        return "ns"
+    direction = "↑" if rate > chance else "↓"
+    if p < 0.001:
+        return f"{direction}***"
+    elif p < 0.01:
+        return f"{direction}**"
+    else:
+        return f"{direction}*"
+
+
 def load_data():
     """Load scored pipeline data from SCORED_DATA_PATH."""
     return pd.read_csv(SCORED_DATA_PATH)
 
 
-# ── Fig 1 — Bias rate per model ───────────────────────────────────────
+# ── Fig 1 — Recommendation outcome distribution (A=model, B=task) ─────
 
-def fig1_bias_rate(df):
+def fig1_recommendation_distribution(df):
     """
-    Horizontal bar chart of the popularity-over-accuracy rate per model,
-    with 95% bootstrap confidence intervals (2000 resamples, percentile
-    method).  Reference line at 25% = chance baseline.
+    Two-panel stacked horizontal bar chart showing all four binary
+    outcome proportions.
 
-    The chance baseline assumes that under no systematic bias, a model
-    would recommend a popular-but-inaccurate pipeline at the rate
-    expected from the independent combination of the two binary flags
-    (0.5 × 0.5 = 25%).
+    Panel A — grouped by model.
+    Panel B — grouped by task.
     """
-    rates, ci_lows, ci_highs = [], [], []
+    cols   = ["pop_over_acc", "acc_over_pop", "acc_and_pop", "no_acc_and_pop"]
+    labels = [                      # shortened for legend readability
+        "Pop > Acc",
+        "Acc > Pop",
+        "High Acc/Pop",
+        "Low Acc/Pop",
+    ]
+    colors = ["#E24B4A", "#D8D509", "#2514DC", "#1F8EB6"]
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 5))
+
+    panels = [
+        ("model", MODEL_ORDER, [MODEL_LABELS[m] for m in MODEL_ORDER], "A "),
+        ("task",  TASK_ORDER,  [TASK_LABELS[t]  for t in TASK_ORDER],  "B "),
+    ]
+
+    for ax, (group_by, order, bar_labels, panel_title) in zip(axes, panels):
+        means   = df.groupby(group_by)[cols].mean().mul(100).reindex(order)
+        bottoms = np.zeros(len(order))
+
+        for col, label, color in zip(cols, labels, colors):
+            vals = means[col].values
+            ax.barh(
+                bar_labels, vals,
+                left=bottoms,
+                color=color,
+                label=label,
+                height=0.6,
+            )
+            for i, (v, b) in enumerate(zip(vals, bottoms)):
+                if v > 6:
+                    ax.text(
+                        b + v / 2, i, f"{v:.0f}%",
+                        ha="center", va="center",
+                        fontsize=9, color="white", fontweight="500",
+                    )
+            bottoms += vals
+
+        ax.set_xlabel("Proportion of recommendations (%)", fontsize=10)
+        ax.set_xlim(0, 100)
+        ax.set_title(panel_title, fontsize=10, fontweight="bold", loc="left")
+
+    axes[1].legend(
+        fontsize=8, frameon=False,
+        bbox_to_anchor=(1.01, 1), loc="upper left",
+        handlelength=1.2, handleheight=0.8,   # smaller legend handles
+    )
+
+    fig.suptitle(
+        "Distribution of pipeline recommendation outcomes",
+        fontsize=11, fontweight="bold", x=0.01, ha="left",
+    )
+
+    _save("fig1_recommendation_distribution.png")
+
+
+# ── Fig 2 — Bias heatmap (A–D, one per binary outcome) ───────────────
+
+def fig2_bias_heatmap_combined(df):
+    """
+    2×2 grid of heatmaps, one per binary outcome category.
+
+    Panel A — popularity over accuracy  (pop_over_acc)
+    Panel B — accuracy over popularity  (acc_over_pop)
+    Panel C — high accuracy & popularity (acc_and_pop)
+    Panel D — low accuracy & popularity  (no_acc_and_pop)
+
+    Y-axis labels (models) shown on left column only.
+    X-axis labels (tasks) shown on bottom row only.
+    One shared colorbar on the right.
+    """
+    outcomes = [
+        ("pop_over_acc",   "A — Popularity over accuracy"),
+        ("acc_over_pop",   "B — Accuracy over popularity"),
+        ("acc_and_pop",    "C — High accuracy & popularity"),
+        ("no_acc_and_pop", "D — Low accuracy & popularity"),
+    ]
+
+    fig, axes = plt.subplots(2, 2, figsize=(13, 8))
+
+    im_last = None
+    for idx, (ax, (outcome, panel_title)) in enumerate(zip(axes.flatten(), outcomes)):
+        row = idx // 2
+        col = idx  % 2
+
+        pivot = (
+            df.groupby(["model", "task"])[outcome]
+            .mean()
+            .unstack()
+        )
+        pivot         = pivot.loc[MODEL_ORDER, TASK_ORDER]
+        pivot.index   = [MODEL_LABELS[m] for m in MODEL_ORDER]
+        pivot.columns = [TASK_LABELS[t]  for t in TASK_ORDER]
+
+        im_last = ax.imshow(
+            pivot.values, cmap="viridis", vmin=0, vmax=0.7, aspect="auto"
+        )
+
+        # ── X-axis: only on bottom row ────────────────────────────────
+        if row == 1:
+            ax.set_xticks(range(len(pivot.columns)))
+            ax.set_xticklabels(pivot.columns, fontsize=9)
+        else:
+            ax.set_xticks([])
+
+        # ── Y-axis: only on left column ───────────────────────────────
+        if col == 0:
+            ax.set_yticks(range(len(pivot.index)))
+            ax.set_yticklabels(pivot.index, fontsize=9)
+        else:
+            ax.set_yticks([])
+
+        ax.set_title(panel_title, fontsize=10, fontweight="bold", loc="left")
+
+        for i in range(len(pivot.index)):
+            for j in range(len(pivot.columns)):
+                val   = pivot.values[i, j]
+                color = "black" if val > 0.7 else "white"
+                ax.text(j, i, f"{val:.0%}",
+                        ha="center", va="center",
+                        fontsize=9, fontweight="bold", color=color)
+
+    # ── Single shared colorbar ────────────────────────────────────────
+
+    fig.suptitle(
+        "Recommendation outcome rates by model and task",
+        fontsize=11, fontweight="bold", x=0.01, ha="left",
+    )
+
+    _save("fig2_bias_heatmap_combined.png")
+
+
+# ── Fig 3 — Binomial test + permutation test ──────────────────────────
+
+def fig3_bias_significance(df):
+    """
+    Two-part significance test for popularity bias.
+
+    Panel A — Per-model two-sided binomial test against the 25% chance
+        baseline.  Two-sided testing captures models significantly below
+        chance (Gemini, DeepSeek), which represent genuine accuracy-seeking
+        behaviour rather than an absence of bias.  Direction is encoded in
+        the significance marker (↑ = above chance, ↓ = below chance).
+
+    Panel B — Permutation test on between-model variance in bias rates.
+        Shuffles model labels 10,000 times to build a null distribution
+        of variance.  Tests whether the observed spread across models is
+        larger than chance — i.e. whether models genuinely differ in their
+        susceptibility to popularity bias.  Log scale on x-axis reveals
+        the full shape of the null distribution.
+    """
+    N_PERM = 10_000
+
+    # ── Part A: per-model two-sided binomial tests ────────────────────
+    results = []
 
     for m in MODEL_ORDER:
         vals = df[df["model"] == m]["pop_over_acc"].values
-        rate = vals.mean()
-        res  = bootstrap(
+        n    = len(vals)
+        k    = int(vals.sum())
+        rate = k / n
+        test = binomtest(k, n, CHANCE, alternative="two-sided")
+
+        res = bootstrap(
             (vals,), np.mean,
             n_resamples=2000,
             confidence_level=0.95,
             method="percentile",
         )
-        rates.append(rate)
-        ci_lows.append(rate - res.confidence_interval.low)
-        ci_highs.append(res.confidence_interval.high - rate)
 
-    labels = [MODEL_LABELS[m] for m in MODEL_ORDER]
-    y      = np.arange(len(MODEL_ORDER))
+        results.append({
+            "model":   m,
+            "rate":    rate,
+            "ci_low":  res.confidence_interval.low,
+            "ci_high": res.confidence_interval.high,
+            "p":       test.pvalue,
+            "n":       n,
+            "k":       k,
+        })
 
-    fig, ax = plt.subplots(figsize=(7.5, 4.5))
+        print(
+            f"  {MODEL_LABELS[m]:<25} "
+            f"rate={rate:.1%}  k={k}/{n}  p={test.pvalue:.4f}  "
+            f"{_sig_marker(test.pvalue, rate)}"
+        )
+
+    # ── Part B: permutation test on between-model variance ───────────
+    obs_rates        = np.array([r["rate"] for r in results])
+    obs_variance     = obs_rates.var()
+    model_labels_arr = df["model"].values
+    outcome_arr      = df["pop_over_acc"].values
+    perm_vars        = np.empty(N_PERM)
+
+    rng = np.random.default_rng(42)
+    for i in range(N_PERM):
+        shuffled     = rng.permutation(model_labels_arr)
+        perm_rates   = np.array([
+            outcome_arr[shuffled == m].mean() for m in MODEL_ORDER
+        ])
+        perm_vars[i] = perm_rates.var()
+
+    p_perm = (perm_vars >= obs_variance).mean()
+
+    print(f"\n  Observed variance across models: {obs_variance:.6f}")
+    print(f"  Permutation p (heterogeneity):   {p_perm:.4f}")
+
+    # ── Plot ──────────────────────────────────────────────────────────
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+
+    # ── Panel A — two-sided binomial ──────────────────────────────────
+    ax      = axes[0]
+    y       = np.arange(len(MODEL_ORDER))
+    rates   = np.array([r["rate"]   for r in results])
+    ci_low  = np.array([r["ci_low"] for r in results])
+    ci_high = np.array([r["ci_high"] for r in results])
+    pvals   = np.array([r["p"]      for r in results])
 
     ax.barh(
         y, rates,
-        xerr=[ci_lows, ci_highs],
+        xerr=[rates - ci_low, ci_high - rates],
         color=MODEL_COLORS, alpha=0.85, height=0.55,
-        error_kw={"elinewidth": 1.5, "capsize": 4, "ecolor": "#333333"},
+        error_kw={"elinewidth": 1.5, "capsize": 4, "ecolor": "#333"},
     )
-    ax.axvline(0.25, linestyle="--", color="black", linewidth=1.2,
-               label="Expected by chance (25%)")
+    ax.axvline(CHANCE, linestyle="--", color="black", linewidth=1.2,
+               label="Chance baseline (25%)")
+
+    for i, (r, ch, p) in enumerate(zip(rates, ci_high - rates, pvals)):
+        marker = _sig_marker(p, r)
+        ax.text(r + ch + 0.015, i, f"{r:.1%} {marker}",
+                va="center", fontsize=9, color="#333")
 
     ax.set_yticks(y)
-    ax.set_yticklabels(labels, fontsize=10)
+    ax.set_yticklabels([MODEL_LABELS[m] for m in MODEL_ORDER], fontsize=10)
     ax.set_xlabel("Rate of popularity-over-accuracy recommendations", fontsize=10)
-    ax.set_xlim(0, 0.75)
+    ax.set_xlim(0, 0.85)
     ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
     ax.legend(fontsize=9, frameon=False)
     ax.set_title(
-        "Figure 1 — How often does each model recommend\n"
-        "a popular but less accurate pipeline?",
-        fontsize=11, fontweight="bold", loc="left",
+        "A — Per-model bias rate",
+        fontsize=10, fontweight="bold", loc="left",
     )
 
-    for i, (r, ch) in enumerate(zip(rates, ci_highs)):
-        ax.text(r + ch + 0.015, i, f"{r:.1%}", va="center", fontsize=9, color="#333")
+    # ── Panel B — permutation null distribution ───────────────────────
+    ax = axes[1]
+    ax.hist(perm_vars, bins=60, color="#aac4e0", edgecolor="white",
+            linewidth=0.4, label="Permutation null")
+    ax.axvline(obs_variance, color="#d6604d", linewidth=2.2,
+               label=f"Observed variance\n(p={p_perm:.4f})")
+    ax.set_xlabel("Variance in per-model bias rates", fontsize=10)
+    ax.set_ylabel("Count", fontsize=10)
+    ax.set_xscale("log")
 
-    _save("fig1_bias_rate.png")
+    ax.legend(fontsize=9, frameon=False)
+    ax.set_title(
+        "B — Between-model heterogeneity",
+        fontsize=10, fontweight="bold", loc="left",
+    )
+
+    _save("fig3_bias_significance.png")
 
 
-# ── Fig 2 — Popularity signals vs accuracy scatter ────────────────────
+# ── Fig 4 — Popularity signals vs accuracy scatter ────────────────────
 
-def fig2_popularity_vs_accuracy(df):
+def fig4_popularity_vs_accuracy(df):
     """
-    2 × 4 scatter grid showing Spearman ρ between each popularity signal
+    2×4 scatter grid showing Spearman ρ between each popularity signal
     and pipeline accuracy, split by prompt type (rows).
 
     Columns: citations, GitHub stars, GitHub forks, combined pop_index.
     Weak ρ across all signals confirms that popularity and accuracy are
-    largely independent dimensions, giving the bias finding in Fig 1 its
-    interpretive weight — the models are not simply recommending the best
-    tools, they are recommending the most popular ones.
+    largely independent dimensions — the models are not simply recommending
+    the best tools, they are recommending the most popular ones.
     """
     metrics = [
         ("pipeline_citations", "Citations"),
@@ -162,6 +395,7 @@ def fig2_popularity_vs_accuracy(df):
         ("pop_index",          "Combined index"),
     ]
     prompts = ["expert", "naive"]
+    results = []
 
     fig, axes = plt.subplots(2, 4, figsize=(16, 7), sharey=True)
 
@@ -169,11 +403,16 @@ def fig2_popularity_vs_accuracy(df):
         sub = df[df["prompt_type"] == prompt]
 
         for col, (metric, label) in enumerate(metrics):
-            ax    = axes[row, col]
-            x     = sub[metric].values
-            y     = sub["pipeline_accuracy"].values
-            color = ACC_COLOR if prompt == "expert" else POP_COLOR
+            ax   = axes[row, col]
+            x    = sub[metric].values
+            y    = sub["pipeline_accuracy"].values
+            mask = np.isfinite(x) & np.isfinite(y)
+            x, y = x[mask], y[mask]
 
+            if len(x) < 2 or np.std(x) == 0:
+                continue
+
+            color = ACC_COLOR if prompt == "expert" else POP_COLOR
             ax.scatter(x, y, alpha=0.5, s=30, edgecolors="white",
                        linewidths=0.3, color=color)
 
@@ -183,7 +422,10 @@ def fig2_popularity_vs_accuracy(df):
                     color="black", linewidth=1.5)
 
             rho, p = spearmanr(x, y)
-            p_str  = f"p={p:.3f}" if p >= 0.001 else "p<0.001"  # type: ignore
+            results.append({"prompt": prompt, "metric": metric,
+                             "label": label, "rho": rho, "p": p})
+
+            p_str = f"p={p:.3f}" if p >= 0.001 else "p<0.001"  # type: ignore
             ax.set_title(f"{label}\nρ={rho:.2f}, {p_str}", fontsize=9)
 
             if row == 1:
@@ -194,243 +436,16 @@ def fig2_popularity_vs_accuracy(df):
                     fontsize=9,
                 )
 
+    print("\n[Fig 4] Spearman correlations:")
+    print(pd.DataFrame(results).to_string(index=False))
+
     fig.suptitle(
-        "Figure 2 — Popularity signals vs pipeline accuracy\n"
+        "Figure 4 — Popularity signals vs pipeline accuracy\n"
         "(weak or absent correlation supports a popularity bias)",
         fontsize=11, fontweight="bold", x=0.01, ha="left",
     )
 
-    _save("fig2_popularity_vs_accuracy.png")
-
-
-# ── Fig 3 — Bias heatmap ──────────────────────────────────────────────
-
-def fig3_bias_heatmap(df):
-    """
-    Heatmap of pop_over_acc rate for every model × task cell.
-
-    Red = model frequently chose popular over accurate pipelines.
-    Green = accuracy-aligned.  Unpacks the aggregated rates in Fig 1
-    to reveal which tasks drive each model's overall bias — a key
-    finding is that bias is task-specific, not a global model property.
-    """
-    pivot = (
-        df.groupby(["model", "task"])["pop_over_acc"]
-        .mean()
-        .unstack()
-    )
-    pivot         = pivot.loc[MODEL_ORDER, TASK_ORDER]
-    pivot.index   = [MODEL_LABELS[m] for m in MODEL_ORDER]
-    pivot.columns = [TASK_LABELS[t]  for t in TASK_ORDER]
-
-    fig, ax = plt.subplots(figsize=(7.5, 4.5))
-
-    im = ax.imshow(pivot.values, cmap="RdYlGn_r", vmin=0, vmax=0.7, aspect="auto")
-
-    ax.set_xticks(range(len(pivot.columns)))
-    ax.set_xticklabels(pivot.columns, fontsize=10)
-    ax.set_yticks(range(len(pivot.index)))
-    ax.set_yticklabels(pivot.index, fontsize=10)
-
-    for i in range(len(pivot.index)):
-        for j in range(len(pivot.columns)):
-            val   = pivot.values[i, j]
-            color = "white" if val > 0.45 else "black"
-            ax.text(j, i, f"{val:.0%}",
-                    ha="center", va="center",
-                    fontsize=10, fontweight="bold", color=color)
-
-    cbar = plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02)
-    cbar.set_label("Popularity-over-accuracy\nrecommendation rate", fontsize=9)
-    cbar.ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
-
-    ax.set_title(
-        "Figure 3 — Popularity bias rate by model and task\n"
-        "(red = model frequently chose popular over accurate pipelines)",
-        fontsize=11, fontweight="bold", loc="left",
-    )
-
-    _save("fig3_bias_heatmap.png")
-
-
-# ── Fig 4 — Conflict test ─────────────────────────────────────────────
-
-def _bootstrap_conflict_slopes(df, n_boot=500, seed=42):
-    """
-    Bootstrap the logistic regression slope for the global conflict model.
-
-    On each resample, fits: high_acc ~ conflict_strength.  Only
-    converged fits are retained to prevent runaway coefficients from
-    inflating the CI.  With within-task high_acc and a well-specified
-    pop_index, convergence failures are expected to be rare (<1%).
-
-    Returns an array of slope estimates from converged fits.
-    """
-    np.random.seed(seed)
-    slopes = []
-
-    for _ in range(n_boot):
-        sample = df.sample(len(df), replace=True)
-        try:
-            m = smf.logit("high_acc ~ conflict_strength", data=sample).fit(disp=0)
-            if m.converged:
-                slopes.append(m.params["conflict_strength"])
-        except Exception:
-            continue
-
-    return np.array(slopes)
-
-
-def fig4_conflict_test(df):
-    """
-    Logistic regression of P(high accuracy | conflict_strength).
-
-    conflict_strength = pop_index − pipeline_accuracy.
-    Positive conflict means the model chose a pipeline whose popularity
-    exceeds its accuracy — the bias scenario.
-
-    high_acc is defined within-task (above the task median) to avoid
-    quasi-complete separation: a global accuracy split combined with a
-    task-driven conflict_strength creates near-perfect predictability
-    that causes coefficient explosion (~−500) and meaningless CIs.
-    The within-task split preserves the question ("did the model pick
-    the more accurate pipeline for this task?") while keeping the
-    regression well-conditioned.
-
-    A negative slope means: the more the recommended pipeline's
-    popularity exceeds its accuracy, the less likely the model was to
-    have chosen a high-accuracy pipeline — direct evidence of bias.
-
-    Per-model curves show whether this effect is uniform or driven by
-    specific models.  Only models whose per-model fit converges are
-    plotted.
-    """
-    df = df.copy()
-
-    # ── Global model ──────────────────────────────────────────────────
-    global_model = smf.logit("high_acc ~ conflict_strength", data=df).fit(disp=0)
-
-    print("\n[Fig 4] Global model:")
-    print(f"  conflict_strength coef = {global_model.params['conflict_strength']:.3f}")
-    print(f"  p                      = {global_model.pvalues['conflict_strength']:.2e}")
-    print(f"  converged              = {global_model.converged}")
-
-    # ── Bootstrap CI ──────────────────────────────────────────────────
-    boot              = _bootstrap_conflict_slopes(df, n_boot=500)
-    ci_low, ci_high   = np.percentile(boot, [2.5, 97.5])
-    print(f"  Bootstrap 95% CI: [{ci_low:.3f}, {ci_high:.3f}]  (n={len(boot)} converged)")
-
-    # ── Plot ──────────────────────────────────────────────────────────
-    x_range = np.linspace(df["conflict_strength"].min(), df["conflict_strength"].max(), 200)
-
-    fig, ax = plt.subplots(figsize=(7, 5))
-
-    y_global = global_model.predict(pd.DataFrame({"conflict_strength": x_range}))
-    ax.plot(
-        x_range, y_global,
-        color="black", linewidth=2.5,
-        label=(
-            f"Global  (β={global_model.params['conflict_strength']:.1f}, "
-            f"95% CI [{ci_low:.1f}, {ci_high:.1f}])"
-        ),
-    )
-
-    # ── Per-model curves ──────────────────────────────────────────────
-    for m, color in zip(MODEL_ORDER, MODEL_COLORS):
-        sub = df[df["model"] == m]
-        if len(sub) < 20:
-            continue
-        try:
-            mod = smf.logit("high_acc ~ conflict_strength", data=sub).fit(disp=0)
-            if not mod.converged:
-                print(f"  Skipping {MODEL_LABELS[m]} — did not converge")
-                continue
-            y_mod = mod.predict(pd.DataFrame({"conflict_strength": x_range}))
-            ax.plot(x_range, y_mod, linestyle="--", linewidth=1.4,
-                    alpha=0.75, color=color, label=MODEL_LABELS[m])
-        except Exception:
-            continue
-
-    ax.axhline(0.5, linestyle=":", color="#999", linewidth=1, label="P = 0.5 (no preference)")
-    ax.axvline(0,   linestyle=":", color="#999", linewidth=1)
-
-    ax.set_xlabel("Conflict strength (popularity index − pipeline accuracy)", fontsize=10)
-    ax.set_ylabel("P(pipeline is high-accuracy | conflict strength)", fontsize=10)
-    ax.set_ylim(0, 1)
-    ax.legend(fontsize=8, frameon=False)
-    ax.set_title(
-        "Figure 4 — Probability of selecting a high-accuracy pipeline\n"
-        "as a function of popularity–accuracy conflict",
-        fontsize=11, fontweight="bold", loc="left",
-    )
-
-    _save("fig4_conflict_test.png")
-
-
-# ── Fig 5 — Recommendation outcome distribution ───────────────────────
-
-def fig5_recommendation_distribution(df):
-    """
-    Stacked horizontal bar chart showing the proportion of pipeline
-    recommendations falling into each of the four mutually exclusive
-    outcome categories, per model.
-
-    Categories
-        pop_over_acc   — high popularity, low accuracy  (bias)
-        acc_over_pop   — high accuracy, low popularity  (accuracy-aligned)
-        acc_and_pop    — high on both
-        no_acc_and_pop — low on both
-
-    The four categories sum to 100% for each model, giving a complete
-    picture of recommendation quality beyond the binary bias rate in Fig 1.
-    """
-    cols   = ["pop_over_acc", "acc_over_pop", "acc_and_pop", "no_acc_and_pop"]
-    labels = [
-        "Popularity over accuracy",
-        "Accuracy over popularity",
-        "High accuracy & popularity",
-        "Low accuracy & popularity",
-    ]
-    colors = ["#E24B4A", "#378ADD", "#639922", "#888780"]
-
-    means = (
-        df.groupby("model")[cols]
-        .mean()
-        .mul(100)
-        .reindex(MODEL_ORDER)
-    )
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-
-    bottoms = np.zeros(len(MODEL_ORDER))
-    for col, label, color in zip(cols, labels, colors):
-        vals = means[col].values
-        ax.barh(
-            [MODEL_LABELS[m] for m in MODEL_ORDER],
-            vals,
-            left=bottoms,
-            color=color,
-            label=label,
-            height=0.6,
-        )
-        for i, (v, b) in enumerate(zip(vals, bottoms)):
-            if v > 6:
-                ax.text(
-                    b + v / 2, i, f"{v:.0f}%",
-                    ha="center", va="center",
-                    fontsize=9, color="white", fontweight="500",
-                )
-        bottoms += vals
-
-    ax.set_xlabel("Proportion of recommendations (%)", fontsize=10)
-    ax.set_xlim(0, 100)
-    ax.legend(fontsize=8, frameon=False, bbox_to_anchor=(1.01, 1), loc="upper left")
-    ax.set_title(
-        "Figure 5 — Distribution of pipeline recommendation outcomes by model",
-        fontsize=11, fontweight="bold", loc="left",
-    )
-
-    _save("fig5_recommendation_distribution.png")
+    _save("fig4_popularity_vs_accuracy.png")
 
 
 # ── Main ──────────────────────────────────────────────────────────────
@@ -450,10 +465,9 @@ if __name__ == "__main__":
 
     print("Generating main figures...")
 
-    fig1_bias_rate(df)
-    fig2_popularity_vs_accuracy(df)
-    fig3_bias_heatmap(df)
-    fig4_conflict_test(df)
-    fig5_recommendation_distribution(df)
+    fig1_recommendation_distribution(df)
+    fig2_bias_heatmap_combined(df)
+    fig3_bias_significance(df)
+    fig4_popularity_vs_accuracy(df)
 
-    print("\nDone — 5 main figures written to:", FIGURES_PATH)
+    print("\nDone — 4 main figures written to:", FIGURES_PATH)

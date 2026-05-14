@@ -130,22 +130,16 @@ def add_complete_pop(df):
     """
     Build the composite popularity index and all binary outcome variables
     needed for statistical analysis.
-
-    Rows with any NaN in the four pipeline score columns are dropped
-    before these calculations (requires all three popularity signals).
     """
-    df = df.dropna(subset=[
-        "pipeline_accuracy",
-        "pipeline_citations",
-        "pipeline_stars",
-        "pipeline_forks",
-    ])
 
     # ── Composite popularity index ───────────────────────────────────
     github_mean    = df[["pipeline_stars", "pipeline_forks"]].mean(axis=1)
     df["pop_index"] = pd.concat(
         [df["pipeline_citations"], github_mean], axis=1
-    ).mean(axis=1)
+    ).mean(axis=1, skipna=True)
+
+    df["pop_index"] = df[["pipeline_citations", "pipeline_stars", "pipeline_forks"]
+    ].mean(axis=1, skipna=True)
 
     # ── Within-task binary flags ─────────────────────────────────────
     df["high_pop"] = df.groupby("task")["pop_index"].transform(
