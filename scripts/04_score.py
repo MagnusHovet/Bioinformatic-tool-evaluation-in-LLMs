@@ -15,12 +15,6 @@ Steps
                              within-task binary flags, outcome variables,
                              and conflict strength.
 
-Normalisation
--------------
-  All popularity metrics (citations, stars, forks) are rank-normalised
-  using the formula 1 - (r-1)/(n-1), matching the accuracy normalisation
-  applied in the source benchmark (Paul et al.).
-
 Output
 ------
   data/benchmark_data/ai_bioinfo_pipeline_benchmarks.csv
@@ -130,16 +124,16 @@ def add_complete_pop(df):
     """
     Build the composite popularity index and all binary outcome variables
     needed for statistical analysis.
-    """
 
+    """
     # ── Composite popularity index ───────────────────────────────────
     github_mean    = df[["pipeline_stars", "pipeline_forks"]].mean(axis=1)
+    github_mean_clean = github_mean.replace(0, pd.NA)
     df["pop_index"] = pd.concat(
-        [df["pipeline_citations"], github_mean], axis=1
+        [df["pipeline_citations"], github_mean_clean], axis=1
     ).mean(axis=1, skipna=True)
 
-    df["pop_index"] = df[["pipeline_citations", "pipeline_stars", "pipeline_forks"]
-    ].mean(axis=1, skipna=True)
+    df["pop_index"] = df["pipeline_citations"]
 
     # ── Within-task binary flags ─────────────────────────────────────
     df["high_pop"] = df.groupby("task")["pop_index"].transform(

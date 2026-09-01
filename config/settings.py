@@ -128,12 +128,10 @@ ROLES = {
     "for the specific experimental context described, prioritizing accuracy",
     }
 
-
-
 MODELS = [
-    "google/gemini-2.5-pro",
-    "openai/gpt-5.4",
     "openai/gpt-5.4-mini",
+    "openai/gpt-5.4",
+    "google/gemini-2.5-pro",
     "anthropic/claude-sonnet-4-6",
     "deepseek/deepseek-chat"
 ]
