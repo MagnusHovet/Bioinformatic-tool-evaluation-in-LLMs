@@ -128,22 +128,49 @@ ROLES = {
     "for the specific experimental context described, prioritizing accuracy",
     }
 
-MODELS = [
-    "openai/gpt-5.4-mini",
-    "openai/gpt-5.4",
-    "google/gemini-2.5-pro",
-    "anthropic/claude-sonnet-4-6",
-    "deepseek/deepseek-chat"
-]
+# Each run has its own model set and its own raw data, scored data and
+# figures under runs/<RUN>/. Select a run with the RUN environment
+# variable (PowerShell: $env:RUN = "2026-10_rerun"); default is the original.
+RUNS = {
+    "2026-04_original": [
+        "openai/gpt-5.4-mini",
+        "openai/gpt-5.4",
+        "google/gemini-2.5-pro",
+        "anthropic/claude-sonnet-4-6",
+        "deepseek/deepseek-chat",
+    ],
+    "2026-10_rerun": [
+        "openai/gpt-6-luna",
+        "openai/gpt-6.1-sol",
+        "google/gemini-3.1-pro-preview",
+        "anthropic/claude-sonnet-5-5",
+        "deepseek/deepseek-v4-pro",
+    ],
+}
+
+# Instructor output mode per model, where the provider default (forced
+# tool call) is rejected. Newer reasoning models refuse forced tool_choice,
+# so the same Pydantic schema is sent via the closest supported mode.
+MODEL_MODES = {
+    "openai/gpt-6-luna":           "RESPONSES_TOOLS",
+    "openai/gpt-6.1-sol":          "RESPONSES_TOOLS",
+    "anthropic/claude-sonnet-5-5": "ANTHROPIC_REASONING_TOOLS",
+    "deepseek/deepseek-v4-pro":    "JSON",
+}
+
+RUN    = os.environ.get("RUN", "2026-04_original")
+MODELS = RUNS[RUN]
 
 N_RUNS = 20
 
 BASE_DIR = Path(__file__).parent.parent
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+RUN_DIR = os.path.join(ROOT, "runs", RUN)
 
-RAW_DATA_PATH = os.path.join(ROOT,"data/raw/ai_bioinfo_pipeline.csv")
-SCORED_DATA_PATH = os.path.join(ROOT,"data/benchmark_data/ai_bioinfo_pipeline_benchmarks.csv") 
+RAW_DATA_PATH = os.path.join(RUN_DIR, "raw", "ai_bioinfo_pipeline.csv")
+SCORED_DATA_PATH = os.path.join(RUN_DIR, "scored", "ai_bioinfo_pipeline_benchmarks.csv")
+NULL_PATH = os.path.join(RUN_DIR, "scored", "random_choice_null.csv")
 
 ACC_DATA_PATH = os.path.join(ROOT,"data/benchmarks/rawRankSpeedData2005-2020.tsv")
 CIT_DATA_PATH = os.path.join(ROOT,"data/benchmarks/speed-vs-accuracy-toolinfo2005-2020.tsv")
@@ -154,7 +181,7 @@ BENCHMARK_FILTERED_PATH = os.path.join(ROOT,"data/benchmarks/tool_benchmark_filt
 BENCHMARK_MANUAL_PATH = os.path.join(ROOT,"data/benchmarks/benchmark_manual.csv")
 BENCHMARK_FINAL_PATH = os.path.join(ROOT,"data/benchmarks/tool_benchmark_final.csv")
 
-FIGURES_PATH = os.path.join(ROOT,"outputs/figures_")
-FIGURES_SUP_PATH = os.path.join(ROOT,"outputs/figures_sup")
+FIGURES_PATH = os.path.join(RUN_DIR, "figures")
+FIGURES_SUP_PATH = os.path.join(RUN_DIR, "figures_sup")
 
 
