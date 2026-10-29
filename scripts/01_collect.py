@@ -11,11 +11,12 @@ defined in config/settings.py.
  
 Output
 ------
-  data/raw/ai_bioinfo_pipeline.csv
- 
+  runs/<RUN>/raw/ai_bioinfo_pipeline.csv  (rewritten after each model)
+
 Usage
 -----
-  python 01_collect.py
+  python 01_collect.py                              (original run)
+  $env:RUN = "2026-10_rerun"; python 01_collect.py  (rerun)
 """
  
 import sys
@@ -27,20 +28,58 @@ import instructor
 import pandas as pd
 from datetime import datetime
  
-from config.settings import INITIAL, TASKS, ROLES, MODELS, N_RUNS, RAW_DATA_PATH, TASK_TO_MODEL
+from config.settings import (
+    INITIAL, TASKS, ROLES, MODELS, MODEL_MODES, N_RUNS, RAW_DATA_PATH, TASK_TO_MODEL,
+)
  
  
+# ── Helpers ───────────────────────────────────────────────────────────
+
+def save(results):
+    """Write all results so far to RAW_DATA_PATH."""
+    os.makedirs(os.path.dirname(RAW_DATA_PATH), exist_ok=True)
+    pd.DataFrame(results).to_csv(RAW_DATA_PATH, index=False)
+
+
+def served_model(completion):
+    """Exact model version reported by the provider, if available."""
+    return (getattr(completion, "model", None)
+            or getattr(completion, "model_version", None))
+
+
+def load_completed():
+    """
+    Resume support: keep rows for models that already have at least 90%
+    of their queries answered successfully (occasional validation
+    failures are kept as error rows); any other model — e.g. one that
+    failed on billing — is collected again from scratch.
+    """
+    if not os.path.exists(RAW_DATA_PATH):
+        return [], set()
+    df       = pd.read_csv(RAW_DATA_PATH)
+    expected = len(TASKS) * len(ROLES) * N_RUNS
+    ok       = df[df["tools"].notna()] if "tools" in df else df.iloc[0:0]
+    done     = {m for m, n in ok.groupby("model").size().items() if n >= 0.9 * expected}
+    return df[df["model"].isin(done)].to_dict("records"), done
+
+
 # ── Collection loop ───────────────────────────────────────────────────
- 
-results    = []
-start_time = time.time()
- 
+
+results, done = load_completed()
+start_time    = time.time()
+
 for model in MODELS:
- 
+
+    if model in done:
+        print(f"Skipping {model} — already complete in {RAW_DATA_PATH}")
+        continue
+
+    kwargs = {}
+    if model in MODEL_MODES:
+        kwargs["mode"] = instructor.Mode[MODEL_MODES[model]]
     if model.startswith("deepseek"):
-        client = instructor.from_provider(model, base_url="https://api.deepseek.com")
-    else:
-        client = instructor.from_provider(model)
+        kwargs["base_url"] = "https://api.deepseek.com"
+    client = instructor.from_provider(model, **kwargs)
  
     for task_name, task_prompt in TASKS.items():
  
@@ -58,7 +97,7 @@ for model in MODELS:
                 prompt     = f"{prompt_style}\n\nTask:\n{task_prompt}"
  
                 try:
-                    pipeline = client.create(
+                    pipeline, completion = client.create_with_completion(
                         response_model=TASK_TO_MODEL[task_name],
                         messages=[
                             {"role": "system", "content": INITIAL},
@@ -79,6 +118,7 @@ for model in MODELS:
                         "run":         run + 1,
                         "tools":       "|".join(tool_list),   # type: ignore
                         "tool_count":  len(tool_list),        # type: ignore
+                        "model_version": served_model(completion),
                     })
  
                 except Exception as e:
@@ -90,14 +130,15 @@ for model in MODELS:
                         "run":         run + 1,
                         "error":       str(e),
                     })
- 
- 
+
+    save(results)
+    print(f"  Saved {len(results)} rows so far → {RAW_DATA_PATH}")
+
+
 # ── Save ──────────────────────────────────────────────────────────────
- 
+
 elapsed = time.time() - start_time
 print(f"Completed in {elapsed:.1f}s ({elapsed/60:.1f} min)")
- 
-df = pd.DataFrame(results)
-os.makedirs(os.path.dirname(RAW_DATA_PATH), exist_ok=True)
-df.to_csv(RAW_DATA_PATH, index=False)
-print(f"Saved {len(df)} rows to {RAW_DATA_PATH}")
+
+save(results)
+print(f"Saved {len(results)} rows to {RAW_DATA_PATH}")
