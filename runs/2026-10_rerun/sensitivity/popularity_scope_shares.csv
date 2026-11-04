@@ -1,0 +1,16 @@
+model,Lo Acc + Lo Pop,Lo Acc + Hi Pop,Hi Acc + Lo Pop,Hi Acc + Hi Pop,scope
+anthropic/claude-sonnet-5-5,0.0,0.5875,0.0,0.4125,global
+deepseek/deepseek-v4-pro,0.2229299363057325,0.42038216560509556,0.006369426751592357,0.3503184713375796,global
+google/gemini-3.1-pro-preview,0.25625,0.59375,0.0,0.15,global
+openai/gpt-6-luna,0.05625,0.5625,0.025,0.35625,global
+openai/gpt-6.1-sol,0.30625,0.5375,0.00625,0.15,global
+anthropic/claude-sonnet-5-5,0.0,0.5875,0.0,0.4125,task
+deepseek/deepseek-v4-pro,0.2229299363057325,0.42038216560509556,0.006369426751592357,0.3503184713375796,task
+google/gemini-3.1-pro-preview,0.25625,0.59375,0.0,0.15,task
+openai/gpt-6-luna,0.05625,0.5625,0.025,0.35625,task
+openai/gpt-6.1-sol,0.30625,0.5375,0.00625,0.15,task
+anthropic/claude-sonnet-5-5,0.0,0.5875,0.25,0.1625,step
+deepseek/deepseek-v4-pro,0.2229299363057325,0.42038216560509556,0.16560509554140126,0.1910828025477707,step
+google/gemini-3.1-pro-preview,0.25625,0.59375,0.10625,0.04375,step
+openai/gpt-6-luna,0.05625,0.5625,0.23125,0.15,step
+openai/gpt-6.1-sol,0.30625,0.5375,0.13125,0.025,step
