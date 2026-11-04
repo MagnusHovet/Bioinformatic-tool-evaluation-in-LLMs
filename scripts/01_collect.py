@@ -15,8 +15,12 @@ Output
 
 Usage
 -----
-  python 01_collect.py                              (original run)
-  $env:RUN = "2026-10_rerun"; python 01_collect.py  (rerun)
+  python 01_collect.py                                  (rerun, the default)
+  $env:RUN = "2026-04_original"; python 01_collect.py   (original run)
+  python 01_collect.py RNA-seq                          (recollect one or more tasks only)
+
+Passing task names replaces those tasks' rows for every model and keeps
+all other rows; the previous raw file is backed up first.
 """
  
 import sys
@@ -63,10 +67,32 @@ def load_completed():
     return df[df["model"].isin(done)].to_dict("records"), done
 
 
+def load_other_tasks(tasks):
+    """
+    Task-only recollection: back up the raw file, then keep every row
+    except those for `tasks`, which are queried again for all models.
+    """
+    df     = pd.read_csv(RAW_DATA_PATH)
+    backup = RAW_DATA_PATH.replace(".csv", f".before_{'_'.join(tasks)}.csv")
+    df.to_csv(backup, index=False)
+    print(f"Backed up {RAW_DATA_PATH} → {backup}")
+    return df[~df["task"].isin(tasks)].to_dict("records"), set()
+
+
 # ── Collection loop ───────────────────────────────────────────────────
 
-results, done = load_completed()
-start_time    = time.time()
+task_filter = sys.argv[1:]
+unknown     = set(task_filter) - set(TASKS)
+if unknown:
+    sys.exit(f"Unknown task(s): {sorted(unknown)}; choose from {list(TASKS)}")
+
+if task_filter:
+    results, done = load_other_tasks(task_filter)
+    tasks         = {t: TASKS[t] for t in task_filter}
+else:
+    results, done = load_completed()
+    tasks         = TASKS
+start_time = time.time()
 
 for model in MODELS:
 
@@ -81,7 +107,7 @@ for model in MODELS:
         kwargs["base_url"] = "https://api.deepseek.com"
     client = instructor.from_provider(model, **kwargs)
  
-    for task_name, task_prompt in TASKS.items():
+    for task_name, task_prompt in tasks.items():
  
         for prompt_type, prompt_style in ROLES.items():
  

@@ -220,6 +220,7 @@ def add_complete_pop(df, df_benchmarks):
 if __name__ == "__main__":
 
     df_raw        = pd.read_csv(RAW_DATA_PATH)
+    df_raw        = df_raw[df_raw["tools"].notna()]   # drop failed queries
     df_benchmarks = pd.read_csv(BENCHMARK_FINAL_PATH)
 
     df_merged = join_benchmarks(df_raw, df_benchmarks)

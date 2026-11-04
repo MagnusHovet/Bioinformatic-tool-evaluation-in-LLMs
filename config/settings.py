@@ -130,7 +130,8 @@ ROLES = {
 
 # Each run has its own model set and its own raw data, scored data and
 # figures under runs/<RUN>/. Select a run with the RUN environment
-# variable (PowerShell: $env:RUN = "2026-10_rerun"); default is the original.
+# variable (PowerShell: $env:RUN = "2026-04_original"); default is the
+# rerun, the main result.
 RUNS = {
     "2026-04_original": [
         "openai/gpt-5.4-mini",
@@ -158,7 +159,7 @@ MODEL_MODES = {
     "deepseek/deepseek-v4-pro":    "JSON",
 }
 
-RUN    = os.environ.get("RUN", "2026-04_original")
+RUN    = os.environ.get("RUN", "2026-10_rerun")
 MODELS = RUNS[RUN]
 
 N_RUNS = 20
